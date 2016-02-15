@@ -35,7 +35,7 @@ On a mac simply run:
   * MYSQL_PASSWORD=db_password
 2. Update the database connection values for the Loader and the UI Apps:
   - web/billing-app/apps/config/apps_config.py.
-  - gcbillanalyzer/src/main/resources/config.properties
+  - gcbillanalyzer/gcbillanalyzer/src/main/resources/config.properties
 
 
 ### Rebuild the Jar with the updated changes
