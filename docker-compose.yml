@@ -7,24 +7,23 @@ services:
       - "80:8080"
     links:
       - mysql:mysql
-      - gcbillanalyzer:gcbillanalyzer
 
   mysql:
     restart: "always"
-    build: 
+    build:
       context: "./mysql_files"
 
   gcbillanalyzerbuild:
     restart: "always"
-    build: 
+    build:
       context: "./gcbillanalyzer/gcbillanalyzer"
     container_name: "gcbillanalyzerbuild"
     volumes:
-      - "data:/opt/target"    
+      - "data:/opt/target"
 
   gcbillanalyzer:
     restart: "always"
-    build: 
+    build:
       context: "./gcbillanalyzer"
     links:
       - mysql:mysql
