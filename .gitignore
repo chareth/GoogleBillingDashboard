@@ -1,0 +1,10 @@
+/target/
+.settings
+.idea/
+web/billing-app/apps/billing/billingData_org.py
+web/billing-app/apps/billing/models_org.py
+web/billing-app/apps/billing/views_org.py
+web/billing-app/apps/static/js/controllers/billing/cuBillingControllers_org.js
+web/billing-app/apps/static/partials/billing/usage_org.html
+web/billing-app/reporting_dev.db
+web/billing-app/d3.json

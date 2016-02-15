@@ -1,0 +1,37 @@
+version: '2'
+services:
+  web:
+    build: ./web
+    restart: always
+    ports:
+      - "80:8080"
+    links:
+      - mysql:mysql
+      - gcbillanalyzer:gcbillanalyzer
+
+  mysql:
+    restart: "always"
+    build: 
+      context: "./mysql_files"
+
+  gcbillanalyzerbuild:
+    restart: "always"
+    build: 
+      context: "./gcbillanalyzer/gcbillanalyzer"
+    container_name: "gcbillanalyzerbuild"
+    volumes:
+      - "data:/opt/target"    
+
+  gcbillanalyzer:
+    restart: "always"
+    build: 
+      context: "./gcbillanalyzer"
+    links:
+      - mysql:mysql
+    extra_hosts:
+      - "metadata:169.254.169.254"
+    volumes_from:
+      - gcbillanalyzerbuild
+
+volumes:
+  data: {}
