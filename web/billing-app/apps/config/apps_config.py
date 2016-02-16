@@ -25,8 +25,6 @@ SQLALCHEMY_RECORD_QUERIES = True
 SQLALCHEMY_DATABASE_URI = 'mysql://reporter:gener@te@mysql/reporting'
 
 
-log_file = '/tmp/usagereport.log'
-
 log = logging.getLogger()
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI, poolclass=NullPool)

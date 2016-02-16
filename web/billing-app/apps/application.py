@@ -1,6 +1,6 @@
 import logging
 from flask.app import Flask
-from apps.config.apps_config import db_session, log_file
+from apps.config.apps_config import db_session
 
 
 app = Flask(__name__)
@@ -22,13 +22,5 @@ def shutdown_session(exception=None):
     log.info('----------------- AFter RemoveShutdown session --------------')
 
 
-logging.basicConfig(filename=log_file, level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
-
-
-
-
-
-
-
-
