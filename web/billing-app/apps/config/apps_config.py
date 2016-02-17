@@ -22,7 +22,8 @@ SQLALCHEMY_RECORD_QUERIES = True
 
 '''
 # SQLALCHEMY_DATABASE_URI = 'mysql://username:password@ip-address/db_name'
-SQLALCHEMY_DATABASE_URI = 'mysql://reporter:gener@te@mysql/reporting'
+#SQLALCHEMY_DATABASE_URI = 'mysql://reporter:gener@te@mysql/reporting'
+SQLALCHEMY_DATABASE_URI = 'mysql://' + os.environ.get('MYSQL_USER') + ':' + os.environ.get('MYSQL_PASS') + '@' + os.environ.get('MYSQL_HOST') + '/' + os.environ.get('MYSQL_DBNAME')
 
 
 log = logging.getLogger()

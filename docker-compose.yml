@@ -7,11 +7,14 @@ services:
       - "80:8080"
     links:
       - mysql:mysql
+    env_file: common.env
 
   mysql:
     restart: "always"
     build:
       context: "./mysql_files"
+    ports:
+      - "3306:3306"
 
   gcbillanalyzerbuild:
     restart: "always"
