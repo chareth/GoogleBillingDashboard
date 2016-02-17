@@ -1,14 +1,14 @@
 # Billing App
 
-Billing app is a easy way to represent the cost incurred in an year or month or project or resource for a google based project. 
+Billing app is a easy way to represent the cost incurred in an year or month or project or resource for a google based project.
 It is built using Flask for api calls , AngularJS for front end , D3.js for data visualization, SQL DB to store the data
  and a Java based process to read the JSON file created by Google and update the DB.    
 
 
 # Introduction
-The app has a landing page that displays all the cost centers and the cost for the current month. If there are no 
-cost centers associated then all the projects are placed under 'Other'. Clicking on the cost center names will load 
-the chart for the overall cost for the year in that center. From there you can get other details by changing the drop 
+The app has a landing page that displays all the cost centers and the cost for the current month. If there are no
+cost centers associated then all the projects are placed under 'Other'. Clicking on the cost center names will load
+the chart for the overall cost for the year in that center. From there you can get other details by changing the drop
 down or by clicking on the graph.  
 **URLs**  :  
    **/** -- Landing page  
@@ -22,17 +22,23 @@ This README will give a detailed steps need to get the python app and running as
 # Requirements
 * Google Compute Instance account if using this for development
 
+* Env Vars: The following environment variables need to be available to the process. These are passed in with docker-compose through the common.env file 
+
+  MYSQL_HOST
+  MYSQL_USER
+  MYSQL_PASS
+  MYSQL_DBNAME
 
 ### Installation for Development in Google Compute Instance
 
 1. Update the Database values accordingly in apps_config.py
 2. Copy the code to a storage bucket
 3. Update the following parameters in start_script_ubuntu.sh  with your info
-  
+
         * APP_NAME
         * BUCKET_NAME
 4. Use the deploy/google_compute/start_script_ubuntu.sh as the startup script while creating the instance
-    
+
 Once above is completed, you should have your app up and running in your instance at <instance_url>/.
 
 
@@ -66,7 +72,7 @@ By default the app is visible to all, however if you need to add cost centers th
 * [jQuery] -- For some Js features
 * [D3.js] -- Data visualization
 * [NVD3.js] -- Data visualization library based on D3.js
- 
+
 
 License
 ----
@@ -86,5 +92,3 @@ Open source under Apache License v2.0 (http://www.apache.org/licenses/LICENSE-2.
    [NVD3.js]:  <http://nvd3.org/>
    [Flask]: <flask.pocoo.org>
    [reporting.db]: <https://github.homedepot.com/Homedepot/GoogleBillingDashboard/blob/master/web/billing-app/reporting.db>
-
-
