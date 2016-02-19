@@ -18,6 +18,6 @@ def set_scheduler(hour, min):
 
 
 if __name__ == "__main__":
-    set_ scheduler(None, None)
+    set_scheduler(None, None)
     app.run(debug=True, host='0.0.0.0', port=8080, use_reloader=False)
 
