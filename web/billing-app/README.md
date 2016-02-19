@@ -13,6 +13,7 @@ down or by clicking on the graph.
 **URLs**  :  
    **/** -- Landing page  
    **/billing** -- Billing Cost per cost center
+   **/loadData?hour=0-23&min=0-59** -- Change the scheduler time with the hour and min specified in the url.If nothing is specified then it is set to default value at 5.30
    **/billing/cost_center/#?span=year&span_view=2015&&view_by=month&cost_center=all&project=all&resource=all** -- Overall cost for all cost centers.
    By changing the parameters in the url you can get the corresponding data.  
    There is a login button that will control who can add project into info into the 'Project' table.    

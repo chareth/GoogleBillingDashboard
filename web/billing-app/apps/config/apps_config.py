@@ -1,7 +1,5 @@
 
 import logging
-
-from flask.ext.sqlalchemy import SQLAlchemy
 import os
 
 
@@ -21,8 +19,7 @@ SQLALCHEMY_RECORD_QUERIES = True
   SQL DB
 
 '''
-# SQLALCHEMY_DATABASE_URI = 'mysql://username:password@ip-address/db_name'
-#SQLALCHEMY_DATABASE_URI = 'mysql://reporter:gener@te@mysql/reporting'
+#SQLALCHEMY_DATABASE_URI = 'mysql://root:password@localhost/reporting'
 SQLALCHEMY_DATABASE_URI = 'mysql://' + os.environ.get('MYSQL_USER') + ':' + os.environ.get('MYSQL_PASS') + '@' + os.environ.get('MYSQL_HOST') + '/' + os.environ.get('MYSQL_DBNAME')
 
 
@@ -34,8 +31,24 @@ engine = create_engine(SQLALCHEMY_DATABASE_URI, poolclass=NullPool)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
+
 Base = declarative_base()
 Base.query = db_session.query_property()
+
+'''
+  Data Processor Constants
+'''
+
+
+BUCKET_NAME = os.environ.get('BUCKET_NAME')
+ARCHIVE_BUCKET_NAME = os.environ.get('ARCHIVE_BUCKET_NAME')
+
+'''
+GOOGLE_ACCOUNT =
+GOOGLE_KEY =
+
+'''
+
 
 
 '''
@@ -54,3 +67,5 @@ def log_error(e):
 
 def log_output(data):
     return log.info('Data -- {0}'.format(data))
+
+

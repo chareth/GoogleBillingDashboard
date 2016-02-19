@@ -17,10 +17,8 @@ app.register_blueprint(loginModule)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    log.info('----------------- IN Shutdown session --------------')
     db_session.remove()
     db_session.close()
-    log.info('----------------- AFter RemoveShutdown session --------------')
 
 
 logging.basicConfig(level=logging.DEBUG)

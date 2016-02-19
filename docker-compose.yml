@@ -16,24 +16,5 @@ services:
     ports:
       - "3306:3306"
 
-  gcbillanalyzerbuild:
-    restart: "always"
-    build:
-      context: "./gcbillanalyzer/gcbillanalyzer"
-    container_name: "gcbillanalyzerbuild"
-    volumes:
-      - "data:/opt/target"
-
-  gcbillanalyzer:
-    restart: "always"
-    build:
-      context: "./gcbillanalyzer"
-    links:
-      - mysql:mysql
-    extra_hosts:
-      - "metadata:169.254.169.254"
-    volumes_from:
-      - gcbillanalyzerbuild
-
 volumes:
   data: {}

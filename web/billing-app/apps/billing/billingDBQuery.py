@@ -1,6 +1,4 @@
-
 __author__ = 'ashwini'
-
 
 '''
     __doc__ = "Any DB connection or query is executed here"
@@ -10,6 +8,8 @@ from sqlalchemy.sql import func
 from apps.config.apps_config import db_session, log
 from apps.billing.models import Usage, Projects, AlchemyEncoder
 import json
+import re, datetime
+
 
 
 '''
@@ -173,14 +173,13 @@ def get_billing_data_per_year(year, output_type):
 def get_billing_data_per_year_month(year, value_to_match, output_type):
     if year == value_to_match:
         billing_data = db_session.query(Usage.project_id, func.sum(Usage.cost)). \
-        filter(func.extract('year', Usage.usage_date) == year).group_by(Usage.project_id)
+            filter(func.extract('year', Usage.usage_date) == year).group_by(Usage.project_id)
     else:
         billing_data = db_session.query(Usage.project_id, func.sum(Usage.cost)). \
-        filter(func.extract('year', Usage.usage_date) == year,
-               func.extract(output_type, Usage.usage_date) == value_to_match).group_by(Usage.project_id)
+            filter(func.extract('year', Usage.usage_date) == year,
+                   func.extract(output_type, Usage.usage_date) == value_to_match).group_by(Usage.project_id)
 
     return billing_data
-
 
 
 def get_billing_data_per_year_month_week_day(year, value_to_match, output_type, project_ids):
@@ -209,8 +208,8 @@ def get_billing_data_per_year_quarter_week_day(year, quarter, project_id, output
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id == project_id,
                    func.extract('quarter', Usage.usage_date) == quarter). \
             group_by(func.extract(output_type, Usage.usage_date))
-    elif output_type =='week':
-        billing_data = db_session.query(Usage.project_id,func.extract(output_type, Usage.usage_date),
+    elif output_type == 'week':
+        billing_data = db_session.query(Usage.project_id, func.extract(output_type, Usage.usage_date),
                                         func.sum(Usage.cost)). \
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id == project_id,
                    func.extract('quarter', Usage.usage_date) == quarter).group_by(
@@ -391,7 +390,8 @@ def get_billing_data_per_project_year(year, project_id, output_type):
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id == project_id). \
             group_by(func.unix_timestamp(Usage.usage_date))
     elif output_type == 'week':
-        billing_data = db_session.query(Usage.project_id,func.extract(output_type, Usage.usage_date), func.sum(Usage.cost)). \
+        billing_data = db_session.query(Usage.project_id, func.extract(output_type, Usage.usage_date),
+                                        func.sum(Usage.cost)). \
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id == project_id). \
             group_by(func.extract(output_type, Usage.usage_date))
     else:
@@ -546,8 +546,9 @@ def get_billing_data_per_resource_per_project(year, project_id, resource, output
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id == project_id,
                    Usage.resource_type == resource). \
             group_by(func.unix_timestamp(Usage.usage_date))
-    elif output_type =='week':
-        billing_data = db_session.query(Usage.project_id,func.extract(output_type, Usage.usage_date), func.sum(Usage.cost)). \
+    elif output_type == 'week':
+        billing_data = db_session.query(Usage.project_id, func.extract(output_type, Usage.usage_date),
+                                        func.sum(Usage.cost)). \
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id == project_id,
                    Usage.resource_type == resource). \
             group_by(func.month(Usage.usage_date))
@@ -601,7 +602,8 @@ def get_billing_data_per_resource_per_project_per_quarter(year, value_to_match, 
             group_by(func.unix_timestamp(Usage.usage_date))
 
     elif output_type == 'week':
-        billing_data = db_session.query(Usage.project_id,func.extract(output_type, Usage.usage_date), func.sum(Usage.cost)). \
+        billing_data = db_session.query(Usage.project_id, func.extract(output_type, Usage.usage_date),
+                                        func.sum(Usage.cost)). \
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id == project_id,
                    Usage.resource_type == resource, func.extract('quarter', Usage.usage_date) == value_to_match). \
             group_by(func.extract(output_type, Usage.usage_date))
@@ -653,7 +655,8 @@ def get_billing_data_per_resource_all_project_per_day_month(year, value_to_match
                    Usage.resource_type == resource, func.extract('month', Usage.usage_date) == value_to_match). \
             group_by(func.unix_timestamp(Usage.usage_date))
     elif output_type == 'week':
-        billing_data = db_session.query(Usage.project_id,func.extract(output_type, Usage.usage_date), func.sum(Usage.cost)). \
+        billing_data = db_session.query(Usage.project_id, func.extract(output_type, Usage.usage_date),
+                                        func.sum(Usage.cost)). \
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id.in_(project_ids),
                    Usage.resource_type == resource, func.extract('month', Usage.usage_date) == value_to_match). \
             group_by(func.extract(output_type, Usage.usage_date))
@@ -686,7 +689,8 @@ def get_billing_data_per_resource_all_project_per_day_quarter(year, value_to_mat
                    Usage.resource_type == resource, func.extract('quarter', Usage.usage_date) == value_to_match). \
             group_by(func.unix_timestamp(Usage.usage_date))
     elif output_type == 'week':
-        billing_data = db_session.query(Usage.project_id,func.extract(output_type, Usage.usage_date), func.sum(Usage.cost)). \
+        billing_data = db_session.query(Usage.project_id, func.extract(output_type, Usage.usage_date),
+                                        func.sum(Usage.cost)). \
             filter(func.extract('year', Usage.usage_date) == year, Usage.project_id.in_(project_ids),
                    Usage.resource_type == resource, func.extract('quarter', Usage.usage_date) == value_to_match). \
             group_by(func.extract(output_type, Usage.usage_date))
@@ -742,3 +746,36 @@ def set_global_cost_center_list():
     log.info(cost_center_list)
 
     return cost_center_list
+
+
+'''
+    Insert billing info in usage table
+
+'''
+
+
+def insert_usage_data(data_list):
+    try:
+        for data in data_list:
+            date =data['startTime']
+            usage_date = datetime.datetime.strptime(date.split("-")[0]+'-'+date.split("-")[1]+'-'+date.split("-")[2], "%Y-%m-%dT%H:%M:%S")
+            cost = float(data['cost']['amount'])
+            if 'projectNumber' in data:
+                project_id = 'ID-' + str(data['projectNumber'])
+            else:
+                project_id = 'None'
+            resource_type = str(data['lineItemId'])
+            account_id = str(data['accountId'])
+            usage_value = float(data['measurements'][0]['sum'])
+            measurement_unit = str(data['measurements'][0]['unit'])
+            log.info('INSERTING DATA INTO DB -- {0}'.format(data))
+            usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
+            db_session.add(usage)
+
+        db_session.commit()
+
+    except Exception as e:
+        log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
+        db_session.rollback()
+
+    return usage
