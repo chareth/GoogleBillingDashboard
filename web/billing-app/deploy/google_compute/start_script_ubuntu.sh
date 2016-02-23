@@ -12,6 +12,7 @@ echo "Automation user Creation"
 USER='automation'
 sudo useradd -c "Automation User" -m -r -s "/bin/sh" ${USER} || echo "User already exists."
 
+
 echo " APT GET PYTHON, MYSQL, NGINX, NODEJS and NPM "
 apt-get update
 apt-get install -y python-pip python-dev build-essential
@@ -20,6 +21,16 @@ apt-get install -y python-MySQLdb
 apt-get install -y nginx
 apt-get install -y nodejs
 apt-get install -y npm
+
+
+
+curl  https://bootstrap.pypa.io/get-pip.py -o "get-pip.py"
+
+sudo python get-pip.py
+
+sudo pip install --upgrade google-api-python-client
+
+
 
 echo " symlink for node and install virtual env "
 ln -sf `which nodejs` /usr/bin/node

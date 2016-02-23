@@ -5,6 +5,7 @@ RUN apt-get install -y nodejs
 RUN apt-get install -y npm
 RUN ln -sf `which nodejs` /usr/bin/node
 
+
 WORKDIR "/usr/src/app/billing-app"
 
 RUN npm install -g grunt-cli

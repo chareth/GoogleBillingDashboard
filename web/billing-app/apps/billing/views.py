@@ -1,5 +1,3 @@
-import datetime
-
 __author__ = "Ashwini Chandrasekar(@sriniash)"
 __email__ = "ASHWINI_CHANDRASEKAR@homedepot.com"
 __version__ = "1.0"
@@ -24,6 +22,11 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_per_project_per_day_quarter
 
 from apps.config.apps_config import log_output
+from apps.billing.dataProcessor import set_scheduler
+
+import datetime
+import os
+
 
 mod = Blueprint('billing', __name__, url_prefix='/billing')
 
@@ -62,6 +65,28 @@ def table():
     return resp
 
 
+# route handles for creating table for first time
+@mod.route('/loadData', methods=['GET'])
+def load_data():
+    hour = request.args.get('hour', None)  # hour (0-23)
+    min = request.args.get('min', None)  # minute (0-59)
+
+    response = set_scheduler(hour, min)
+    if hour is not None and min is not None:
+        message = 'Job  is set  -- ' + str(response.get_jobs()) + ' to run everyday  at ' + hour + '.' + min
+        os.environ['SCHEDULER_HOUR'] = hour
+        os.environ['SCHEDULER_MIN'] = min
+    else:
+        message = 'Job  is set to run now ' + str(datetime.datetime.now()) + ' and next run is at ' + \
+                  str(os.environ.get('SCHEDULER_HOUR'))+'.'+str(os.environ.get('SCHEDULER_MIN'))
+        set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))
+    resp = Response(response=json.dumps(message),
+                    status=200,
+                    mimetype="application/json")
+
+    return resp
+
+
 '''
 
     API to get the list of distinct projects
@@ -72,8 +97,6 @@ def table():
 @mod.route('/usage/projects', methods=['GET'])
 def get_project_list():
     data = get_project_list_data()
-
-
 
     resp = Response(response=json.dumps(data['data']),
                     status=data['status'],
