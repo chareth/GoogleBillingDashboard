@@ -1,5 +1,3 @@
-from apps.billing.billingDBQuery import insert_usage_data
-
 __author__ = 'ashwini'
 
 """Command-line sample application for listing all objects in a bucket using
@@ -14,8 +12,21 @@ For more information, see the README.md under /storage.
 import json
 from apiclient import discovery
 from oauth2client.client import GoogleCredentials
-from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log
+from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session
 import datetime
+from apps.billing.models import Usage
+
+from apscheduler.schedulers.background import BackgroundScheduler
+import os
+
+def set_scheduler(hour, min):
+    scheduler = BackgroundScheduler()
+    if hour is None and min is None:
+        scheduler.add_job(data_processor)
+    else:
+        scheduler.add_job(data_processor, 'cron', hour=hour, minute=min)
+    scheduler.start()
+    return scheduler
 
 
 def data_processor():
@@ -67,11 +78,11 @@ def data_processor():
 
     endTime = datetime.datetime.now()
     log.info('Process End time --- {0}'.format(endTime))
-    elapsedTime = startTime - endTime
-    time= 'Total Time to Process all the files -- {0}'.format(divmod(elapsedTime.total_seconds(), 60))
+    elapsedTime = endTime - startTime
+    time = 'Total Time to Process all the files -- {0}'.format(divmod(elapsedTime.total_seconds(), 60))
     log.info(time)
 
-    response = dict(data=json.dumps(message), status=status, time =time)
+    response = dict(data=json.dumps(message), status=status, time=time)
     return response
 
 
@@ -110,14 +121,50 @@ def process_file(filename, file_content, service):
           todo : attach timestamp and tmp to file name while processing
 
         '''
-        insert_usage_data(data_list)
+        insert_usage_data(data_list, filename, service)
 
         log.info('Processing file -- {0} -- ENDING'.format(filename['name']))
 
-        copy_file_to_archive(filename, service)
+
 
     except Exception as e:
         log.error('Error in processing the file -- {0}'.format(e[0]))
+
+
+'''
+    Insert billing info in usage table
+
+'''
+
+
+def insert_usage_data(data_list, filename, service):
+    usage = dict()
+    try:
+        for data in data_list:
+            date = data['startTime']
+            usage_date = datetime.datetime.strptime(
+                date.split("-")[0] + '-' + date.split("-")[1] + '-' + date.split("-")[2], "%Y-%m-%dT%H:%M:%S")
+            cost = float(data['cost']['amount'])
+            if 'projectNumber' in data:
+                project_id = 'ID-' + str(data['projectNumber'])
+            else:
+                project_id = 'None'
+            resource_type = str(data['lineItemId'])
+            account_id = str(data['accountId'])
+            usage_value = float(data['measurements'][0]['sum'])
+            measurement_unit = str(data['measurements'][0]['unit'])
+            # log.info('INSERTING DATA INTO DB -- {0}'.format(data))
+            usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
+            db_session.add(usage)
+
+        copy_file_to_archive(filename, service)
+        db_session.commit()
+
+    except Exception as e:
+        log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
+        db_session.rollback()
+
+    return usage
 
 
 def copy_file_to_archive(filename, service):
@@ -154,3 +201,6 @@ def delete_moved_file(filename, service):
     except Exception as e:
         log.error('Error in deleting the old file - {0}'.format(e[0]))
         # add code to add metadata or rename the file
+
+
+set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))

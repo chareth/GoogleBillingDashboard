@@ -22,9 +22,10 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_per_project_per_day_quarter
 
 from apps.config.apps_config import log_output
+from apps.billing.dataProcessor import set_scheduler
 
 import datetime
-from wsgi import set_scheduler
+import os
 
 
 mod = Blueprint('billing', __name__, url_prefix='/billing')
@@ -67,16 +68,18 @@ def table():
 # route handles for creating table for first time
 @mod.route('/loadData', methods=['GET'])
 def load_data():
-    hour = request.args.get('hour', None) #  hour (0-23)
-    min = request.args.get('min', None) # minute (0-59)
+    hour = request.args.get('hour', None)  # hour (0-23)
+    min = request.args.get('min', None)  # minute (0-59)
 
     response = set_scheduler(hour, min)
-    print response.get_jobs()
     if hour is not None and min is not None:
-        message = 'Job  is set  -- ' + str(response.get_jobs()) + ' to run everyday  at ' + hour +'.'+ min
+        message = 'Job  is set  -- ' + str(response.get_jobs()) + ' to run everyday  at ' + hour + '.' + min
+        os.environ['SCHEDULER_HOUR'] = hour
+        os.environ['SCHEDULER_MIN'] = min
     else:
-        message = 'Job  is set  -- ' + str(response.get_jobs()) + ' to run everyday at 5.30'
-
+        message = 'Job  is set to run now ' + str(datetime.datetime.now()) + ' and next run is at ' + \
+                  str(os.environ.get('SCHEDULER_HOUR'))+'.'+str(os.environ.get('SCHEDULER_MIN'))
+        set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))
     resp = Response(response=json.dumps(message),
                     status=200,
                     mimetype="application/json")

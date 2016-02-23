@@ -5,9 +5,6 @@ RUN apt-get install -y nodejs
 RUN apt-get install -y npm
 RUN ln -sf `which nodejs` /usr/bin/node
 
-RUN curl  https://bootstrap.pypa.io/get-pip.py -o "get-pip.py"
-RUN python get-pip.py
-RUN pip install --upgrade google-api-python-client
 
 WORKDIR "/usr/src/app/billing-app"
 

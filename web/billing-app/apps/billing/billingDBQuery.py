@@ -747,35 +747,3 @@ def set_global_cost_center_list():
 
     return cost_center_list
 
-
-'''
-    Insert billing info in usage table
-
-'''
-
-
-def insert_usage_data(data_list):
-    try:
-        for data in data_list:
-            date =data['startTime']
-            usage_date = datetime.datetime.strptime(date.split("-")[0]+'-'+date.split("-")[1]+'-'+date.split("-")[2], "%Y-%m-%dT%H:%M:%S")
-            cost = float(data['cost']['amount'])
-            if 'projectNumber' in data:
-                project_id = 'ID-' + str(data['projectNumber'])
-            else:
-                project_id = 'None'
-            resource_type = str(data['lineItemId'])
-            account_id = str(data['accountId'])
-            usage_value = float(data['measurements'][0]['sum'])
-            measurement_unit = str(data['measurements'][0]['unit'])
-            log.info('INSERTING DATA INTO DB -- {0}'.format(data))
-            usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
-            db_session.add(usage)
-
-        db_session.commit()
-
-    except Exception as e:
-        log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
-        db_session.rollback()
-
-    return usage
