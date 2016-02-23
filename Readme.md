@@ -40,7 +40,7 @@ On a mac simply run:
   * ARCHIVE_BUCKET_NAME=archive_bucket_name  
 
 ### Load Data into DB
-By default the scheduler is set to process the data everyday at 5.30am. To run the procss immediatley use **/billing/loadData** and to change the scheduler timming use **/billing/loadData?hour=0-23&min=0-59**, this will reset the scheduler.
+By default the scheduler is set to process the data everyday at the time set using the env variables SCHEDULER_HOUR and SCHEDULER_MIN. To run the procss immediatley use **/billing/loadData** and to change the scheduler timming use **/billing/loadData?hour=0-23&min=0-59**, this will reset the scheduler.
 
 ## License
 Open source under Apache License v2.0 (http://www.apache.org/licenses/LICENSE-2.0)
