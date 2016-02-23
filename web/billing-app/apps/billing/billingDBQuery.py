@@ -742,8 +742,6 @@ def set_global_cost_center_list():
                 dict(cost_center='other', project_id=project[0], project_name=project[0], director='',
                      director_email='', contact_name='', contact_email='', alert_amount=''))
 
-    log.info('GLOBAL COST CENTER')
-    log.info(cost_center_list)
-
+   
     return cost_center_list
 
