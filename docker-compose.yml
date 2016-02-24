@@ -7,30 +7,14 @@ services:
       - "80:8080"
     links:
       - mysql:mysql
+    env_file: common.env
 
   mysql:
     restart: "always"
     build:
       context: "./mysql_files"
-
-  gcbillanalyzerbuild:
-    restart: "always"
-    build:
-      context: "./gcbillanalyzer/gcbillanalyzer"
-    container_name: "gcbillanalyzerbuild"
-    volumes:
-      - "data:/opt/target"
-
-  gcbillanalyzer:
-    restart: "always"
-    build:
-      context: "./gcbillanalyzer"
-    links:
-      - mysql:mysql
-    extra_hosts:
-      - "metadata:169.254.169.254"
-    volumes_from:
-      - gcbillanalyzerbuild
+    ports:
+      - "3306:3306"
 
 volumes:
   data: {}
