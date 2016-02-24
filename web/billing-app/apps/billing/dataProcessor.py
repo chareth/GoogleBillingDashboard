@@ -19,13 +19,22 @@ from apps.billing.models import Usage
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 
+run_now = False
+
+
 def set_scheduler(hour, min):
+    global run_now
     scheduler = BackgroundScheduler()
+    scheduler.remove_all_jobs()
+    log.info(' ----- IN SET SCHEDULER -----')
     if hour is None and min is None:
-        scheduler.add_job(data_processor)
+        scheduler.add_job(data_processor, id='data_processor')
+        run_now = True
     else:
-        scheduler.add_job(data_processor, 'cron', hour=hour, minute=min)
+        scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, id='data_processor')
     scheduler.start()
+    log.info('------ SCHEDULER ADDED -----')
+    scheduler.print_jobs()
     return scheduler
 
 
@@ -60,14 +69,22 @@ def data_processor():
             'nextPageToken,items(name,size,contentType,metadata(my-key))'
         req = service.objects().list(bucket=bucket, fields=fields_to_return)
         file_count = 0
-
         log.info('Process Start time --- {0}'.format(startTime))
         # If you have too many items to list in one request, list_next() will
         # automatically handle paging with the pageToken.
         while req:
             resp = req.execute()
             # print(json.dumps(resp, indent=2))
-            get_filenames(resp, service)
+            if len(resp) == 0:
+                log.info('############################################################################################')
+                log.info('--------- THE BUCKET LIST IS EMPTY --------------')
+                log.info('--------- NO FILES TO PROCESS  --------------')
+                log.info(resp)
+                log.info('############################################################################################')
+
+            else:
+                get_filenames(resp, service)
+
             req = service.objects().list_next(req, resp)
 
 
@@ -78,9 +95,16 @@ def data_processor():
 
     endTime = datetime.datetime.now()
     log.info('Process End time --- {0}'.format(endTime))
+
     elapsedTime = endTime - startTime
+
     time = 'Total Time to Process all the files -- {0}'.format(divmod(elapsedTime.total_seconds(), 60))
     log.info(time)
+
+    global run_now
+    log.info(' GLOBAL RUN NOW FLAG --- {0}'.format(run_now))
+    if run_now:
+        set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))
 
     response = dict(data=json.dumps(message), status=status, time=time)
     return response
@@ -90,28 +114,58 @@ def get_filenames(resp, service):
     try:
         for key, items in resp.iteritems():
             for item in items:
-                get_file(item, service)
+                log.info('############################################################################################')
+                filename = item['name']
+                
+                # ARCHIVE THE FILE FIRST
+                copy_resp = copy_file_to_archive(filename, service)
+                log.info(copy_resp)
+                if len(copy_resp) == 0:
+                    log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
+                else:
+                    log.info(' COPYING FILE DONE ')
+                    log.info('Getting file -- {0}'.format(filename))
+                    get_file_resp = get_file(filename, service)
+                    if len(get_file_resp) == 0:
+                        log.error('Error in getting file -- {0}'.format(get_file_resp))
+                    else:
+                        process_file_resp = process_file(filename, get_file_resp, service)
+                        if len(process_file_resp) == 0:
+                            log.error('Error in Processing file -- {0}'.format(filename))
+                        else:
+                            delete_resp = delete_file(filename, service)  # type is string if success
+
+                            if isinstance(delete_resp, dict) and len(delete_resp) == 0:
+                                log.error(' Error in Deleting file --- {0} '.format(filename))
+
+                log.info('############################################################################################')
+
+
+
     except Exception as e:
         log.error('Error in accessing File -- {0}'.format(e[0]))
 
 
 def get_file(filename, service):
+    file_content = dict()
     try:
 
-        log.info('Getting file -- {0}'.format(filename['name']))
         # Get Payload Data
         req = service.objects().get_media(
             bucket=BUCKET_NAME,
-            object=filename['name'])
+            object=filename)
         file_content = req.execute()
-        process_file(filename, file_content, service)
+
     except Exception as e:
-        log.error('Error in getting the file -- {0}, {1}'.format(filename['name'], e[0]))
+        log.error('Error in getting the file -- {0}, {1}'.format(filename, e[0]))
+
+    return file_content
 
 
 def process_file(filename, file_content, service):
+    insert_resp = dict()
     try:
-        log.info('Processing file -- {0} -- STARTING'.format(filename['name']))
+        log.info('Processing file -- {0} -- STARTING'.format(filename))
 
         data_list = json.loads(file_content)
         '''
@@ -121,14 +175,13 @@ def process_file(filename, file_content, service):
           todo : attach timestamp and tmp to file name while processing
 
         '''
-        insert_usage_data(data_list, filename, service)
+        insert_resp = insert_usage_data(data_list, filename, service)
 
-        log.info('Processing file -- {0} -- ENDING'.format(filename['name']))
-
-
+        log.info('Processing file -- {0} -- ENDING'.format(filename))
 
     except Exception as e:
         log.error('Error in processing the file -- {0}'.format(e[0]))
+    return insert_resp
 
 
 '''
@@ -157,8 +210,9 @@ def insert_usage_data(data_list, filename, service):
             usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
             db_session.add(usage)
 
-        copy_file_to_archive(filename, service)
         db_session.commit()
+        usage = dict(message=' data has been added to db')
+        log.info('DONE adding contents for file -- {0} into the db '.format(filename))
 
     except Exception as e:
         log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
@@ -168,39 +222,41 @@ def insert_usage_data(data_list, filename, service):
 
 
 def copy_file_to_archive(filename, service):
+    resp = dict()
     try:
 
-        log.info('Starting to move the file to Archive')
-        log.info('------------------------------------')
+        log.info('Starting to move the file to Archive ---- {0}'.format(filename))
 
-        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject=filename['name'],
-                                             destinationBucket=ARCHIVE_BUCKET_NAME, destinationObject=filename['name'],
+        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject=filename,
+                                             destinationBucket=ARCHIVE_BUCKET_NAME, destinationObject=filename,
                                              body={})
         resp = copy_object.execute()
 
-        log.info('Moving of file - {0} to Archive -{1} Done'.format(filename['name'], ARCHIVE_BUCKET_NAME))
-        log.info('------------------------------------')
+        log.info('DONE Moving of file - {0} to Archive -{1} '.format(filename, ARCHIVE_BUCKET_NAME))
 
-        delete_moved_file(filename, service)
+        # delete_moved_file(filename, service)
 
     except Exception as e:
 
         log.error('Error in Copying the object to archive folder - {0}'.format(e[0]))
 
+    return resp
 
-def delete_moved_file(filename, service):
+
+def delete_file(filename, service):
+    resp = dict()
     try:
-        log.info('Starting to Delete the file  from {0}'.format(BUCKET_NAME))
-        log.info('------------------------------------')
-        delete_object = service.objects().delete(bucket=BUCKET_NAME, object=filename['name'])
+        log.info('Starting to Delete the file {0} from {1}'.format(filename, BUCKET_NAME))
+
+        delete_object = service.objects().delete(bucket=BUCKET_NAME, object=filename)
         resp = delete_object.execute()
 
-        log.info('Deleting file - {0}  from - {1} Done'.format(filename['name'], BUCKET_NAME))
-        log.info('------------------------------------')
+        log.info('DONE Deleting file - {0}  from - {1} '.format(filename, BUCKET_NAME))
 
     except Exception as e:
         log.error('Error in deleting the old file - {0}'.format(e[0]))
         # add code to add metadata or rename the file
+    return resp
 
 
 set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))

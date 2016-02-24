@@ -77,9 +77,10 @@ def load_data():
         os.environ['SCHEDULER_HOUR'] = hour
         os.environ['SCHEDULER_MIN'] = min
     else:
+
         message = 'Job  is set to run now ' + str(datetime.datetime.now()) + ' and next run is at ' + \
                   str(os.environ.get('SCHEDULER_HOUR'))+'.'+str(os.environ.get('SCHEDULER_MIN'))
-        set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))
+
     resp = Response(response=json.dumps(message),
                     status=200,
                     mimetype="application/json")
