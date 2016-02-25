@@ -12,33 +12,33 @@ For more information, see the README.md under /storage.
 import json
 from apiclient import discovery
 from oauth2client.client import GoogleCredentials
-from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session
+from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session, scheduler
 import datetime
 from apps.billing.models import Usage
 
-from apscheduler.schedulers.background import BackgroundScheduler
+from sqlalchemy.sql import func
+
 import os
 
-run_now = False
 
-
-def set_scheduler(hour, min):
-    global run_now
-    scheduler = BackgroundScheduler()
+def run_scheduler():
+    log.info('---- In run_scheduler ----')
     scheduler.remove_all_jobs()
-    log.info(' ----- IN SET SCHEDULER -----')
-    if hour is None and min is None:
-        scheduler.add_job(data_processor, id='data_processor')
-        run_now = True
-    else:
-        scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, id='data_processor')
-    scheduler.start()
-    log.info('------ SCHEDULER ADDED -----')
-    scheduler.print_jobs()
+    scheduler.add_job(data_processor, id='data_processor', args=['now'])
     return scheduler
 
 
-def data_processor():
+def set_scheduler(hour, min):
+    scheduler.remove_all_jobs()
+    log.info(' ----- IN SET SCHEDULER -----')
+    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, id='data_processor', args=['cron'])
+    log.info('------ SCHEDULER ADDED -----')
+    log.info('------ Jobs List -----')
+    log.info(scheduler.print_jobs())
+    return scheduler
+
+
+def data_processor(job_type):
     status = 200
     message = 'Prcoess Complete '
     startTime = datetime.datetime.now()
@@ -69,7 +69,7 @@ def data_processor():
             'nextPageToken,items(name,size,contentType,metadata(my-key))'
         req = service.objects().list(bucket=bucket, fields=fields_to_return)
         file_count = 0
-        log.info('Process Start time --- {0}'.format(startTime))
+        log.info('Process {0} Start time --- {1}'.format(bucket, startTime))
         # If you have too many items to list in one request, list_next() will
         # automatically handle paging with the pageToken.
         while req:
@@ -101,9 +101,8 @@ def data_processor():
     time = 'Total Time to Process all the files -- {0}'.format(divmod(elapsedTime.total_seconds(), 60))
     log.info(time)
 
-    global run_now
-    log.info(' GLOBAL RUN NOW FLAG --- {0}'.format(run_now))
-    if run_now:
+    log.info(' ARGS PASSED --- {0}'.format(job_type))
+    if job_type == 'now':
         set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))
 
     response = dict(data=json.dumps(message), status=status, time=time)
@@ -116,7 +115,7 @@ def get_filenames(resp, service):
             for item in items:
                 log.info('############################################################################################')
                 filename = item['name']
-                
+
                 # ARCHIVE THE FILE FIRST
                 copy_resp = copy_file_to_archive(filename, service)
                 log.info(copy_resp)
@@ -193,7 +192,10 @@ def process_file(filename, file_content, service):
 def insert_usage_data(data_list, filename, service):
     usage = dict()
     try:
+        data_count = 0
+        total_count = 0
         for data in data_list:
+            total_count += 1
             date = data['startTime']
             usage_date = datetime.datetime.strptime(
                 date.split("-")[0] + '-' + date.split("-")[1] + '-' + date.split("-")[2], "%Y-%m-%dT%H:%M:%S")
@@ -207,18 +209,43 @@ def insert_usage_data(data_list, filename, service):
             usage_value = float(data['measurements'][0]['sum'])
             measurement_unit = str(data['measurements'][0]['unit'])
             # log.info('INSERTING DATA INTO DB -- {0}'.format(data))
-            usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
-            db_session.add(usage)
 
+            is_duplicate = is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, usage_value,
+                                             measurement_unit)
+            if is_duplicate:
+                log.info('--------- DATA ALREADY IN DB --------')
+                log.info('--------- DUPLICATE DATA --------')
+            else:
+                usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
+                db_session.add(usage)
+                data_count += 1
         db_session.commit()
         usage = dict(message=' data has been added to db')
-        log.info('DONE adding contents for file -- {0} into the db '.format(filename))
-
+        log.info(
+            'DONE adding {0} items out of {1} for file -- {2} into the db '.format(data_count, total_count, filename))
     except Exception as e:
         log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
         db_session.rollback()
 
     return usage
+
+
+def is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
+    duplicate = False
+
+    data = db_session.query(Usage.project_id).filter(Usage.usage_date == usage_date, Usage.cost == cost,
+                                                     Usage.project_id == project_id,
+                                                     Usage.resource_type == resource_type,
+                                                     Usage.account_id == account_id,
+                                                     Usage.usage_value == usage_value,
+                                                     Usage.measurement_unit == measurement_unit).all()
+    for id in data:
+        if len(id[0]) == 0:
+            duplicate = False
+        else:
+            duplicate = True
+
+    return duplicate
 
 
 def copy_file_to_archive(filename, service):
