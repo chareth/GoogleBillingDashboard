@@ -12,23 +12,28 @@ For more information, see the README.md under /storage.
 import json
 from apiclient import discovery
 from oauth2client.client import GoogleCredentials
-from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session, scheduler
+from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session
 import datetime
 from apps.billing.models import Usage
-
-from sqlalchemy.sql import func
+from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
 
+scheduler = []
+
 
 def run_scheduler():
+    global scheduler
     log.info('---- In run_scheduler ----')
     scheduler.remove_all_jobs()
     scheduler.add_job(data_processor, id='data_processor', args=['now'])
+    log.info('------ Jobs List -----')
+    log.info(scheduler.print_jobs())
     return scheduler
 
 
 def set_scheduler(hour, min):
+    global scheduler
     scheduler.remove_all_jobs()
     log.info(' ----- IN SET SCHEDULER -----')
     scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, id='data_processor', args=['cron'])
@@ -213,8 +218,8 @@ def insert_usage_data(data_list, filename, service):
             is_duplicate = is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, usage_value,
                                              measurement_unit)
             if is_duplicate:
-                log.info('--------- DATA ALREADY IN DB --------')
-                log.info('--------- DUPLICATE DATA --------')
+                log.info('--------- DATA ALREADY IN DB -------- DUPLICATE DATA --------')
+                log.info(data)
             else:
                 usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
                 db_session.add(usage)
@@ -286,4 +291,9 @@ def delete_file(filename, service):
     return resp
 
 
-set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))
+def set_scheduler_initial():
+    print(' -------------- SETTING INITiAL SCHEDULER ---------------------')
+    global scheduler
+    scheduler = BackgroundScheduler()
+    scheduler.start()
+    set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))

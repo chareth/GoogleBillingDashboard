@@ -21,14 +21,16 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_quarter_center, get_costs_per_resource_all_project_per_day_quarter, \
     get_costs_per_resource_per_project_per_day_quarter
 
-from apps.config.apps_config import log_output
-from apps.billing.dataProcessor import set_scheduler, run_scheduler
+from apps.config.apps_config import log
+from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial
 
 import datetime
 import os
 
 
 mod = Blueprint('billing', __name__, url_prefix='/billing')
+
+set_scheduler_initial()
 
 '''
     BILLING PAGE LANDING PAGE , COST CENTER PAGE AND API's
@@ -71,7 +73,6 @@ def load_data():
     hour = request.args.get('hour', None)  # hour (0-23)
     min = request.args.get('min', None)  # minute (0-59)
 
-
     if hour is not None and min is not None:
         response = set_scheduler(hour, min)
         message = 'Job  is set  -- ' + str(response.get_jobs()) + ' to run everyday  at ' + hour + '.' + min
@@ -80,7 +81,7 @@ def load_data():
     else:
         response = run_scheduler()
         message = 'Job  is set to run now ' + str(datetime.datetime.now()) + ' and next run is at ' + \
-                  str(os.environ.get('SCHEDULER_HOUR'))+'.'+str(os.environ.get('SCHEDULER_MIN'))
+                  str(os.environ.get('SCHEDULER_HOUR')) + '.' + str(os.environ.get('SCHEDULER_MIN'))
 
     resp = Response(response=json.dumps(message),
                     status=200,
@@ -121,8 +122,8 @@ def get_project_list():
 
 @mod.route('/usage/<int:year>', methods=['GET'])
 def get_costs(year):
-    log_output('-----------In get_costs-----------------------')
-    log_output(year)
+    log.info('-----------In get_costs-----------------------')
+    log.info(year)
     project_list_local = dict()
     data = dict(usage_data=[], status=200)
 
@@ -256,7 +257,7 @@ def get_costs(year):
                         mimetype="application/json")
 
     except Exception as e:
-        log_output(e)
+        log.error('Error in get_costs() -- {0}'.format(e[0]))
         data['message'] = e[0]
         resp = Response(response=json.dumps(data),
                         status=500,
@@ -360,12 +361,12 @@ def get_cost_center_list():
                 query_data = get_project_by_id(project_id)
 
                 if len(query_data) > 0:
-                    log_output('DATA IN TABLE - SO UPDATE')
+                    log.info('DATA IN TABLE - SO UPDATE')
                     query_data = update_project_data(cost_center, project_id, project_name, director, director_email,
                                                      contact_name, contact_email, alert_amount)
 
                 else:
-                    log_output('DATA NOT IN TABLE - SO INSERT')
+                    log.info('DATA NOT IN TABLE - SO INSERT')
                     query_data = create_project_data(cost_center, project_id, project_name, director, director_email,
                                                      contact_name, contact_email, alert_amount)
 

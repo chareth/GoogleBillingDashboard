@@ -7,12 +7,6 @@ from sqlalchemy.orm.scoping import scoped_session
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from apscheduler.schedulers.background import BackgroundScheduler
-
-
-
-scheduler = BackgroundScheduler()
-scheduler.start()
 
 file_path = os.path.abspath(os.getcwd()) + "/data/reporting.db"
 # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + file_path
