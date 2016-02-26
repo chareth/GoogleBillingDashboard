@@ -26,20 +26,36 @@ def run_scheduler():
     global scheduler
     log.info('---- In run_scheduler ----')
     scheduler.remove_all_jobs()
-    scheduler.add_job(data_processor, id='data_processor', args=['now'])
+    scheduler.print_jobs()
+    scheduler.add_job(data_processor, id='data_processor', replace_existing=True, args=['now'], max_instances=1)
     log.info('------ Jobs List -----')
-    log.info(scheduler.print_jobs())
+    scheduler.print_jobs()
     return scheduler
 
 
 def set_scheduler(hour, min):
     global scheduler
     scheduler.remove_all_jobs()
+    scheduler.print_jobs()
     log.info(' ----- IN SET SCHEDULER -----')
-    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, id='data_processor', args=['cron'])
-    log.info('------ SCHEDULER ADDED -----')
+    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, replace_existing=True, max_instances=1,
+                      id='data_processor', args=['cron'])
+    log.info('------ SCHEDULER INIT -----')
     log.info('------ Jobs List -----')
-    log.info(scheduler.print_jobs())
+    scheduler.print_jobs()
+    return scheduler
+
+
+def reset_scheduler(hour, min):
+    global scheduler
+    scheduler.remove_all_jobs()
+    scheduler.print_jobs()
+    log.info(' ----- IN RESET SCHEDULER -----')
+    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, replace_existing=True, max_instances=1,
+                             id='data_processor', args=['cron'])
+    log.info('------ SCHEDULER RESET -----')
+    log.info('------ Jobs List -----')
+    scheduler.print_jobs()
     return scheduler
 
 
@@ -201,18 +217,33 @@ def insert_usage_data(data_list, filename, service):
         total_count = 0
         for data in data_list:
             total_count += 1
+
             date = data['startTime']
+            resource_type = str(data['lineItemId']).replace("com.google.cloud/services", "").replace(
+                "com.googleapis/services", "")
+            account_id = str(data['accountId'])
             usage_date = datetime.datetime.strptime(
                 date.split("-")[0] + '-' + date.split("-")[1] + '-' + date.split("-")[2], "%Y-%m-%dT%H:%M:%S")
-            cost = float(data['cost']['amount'])
+            # check if credits is there if so then add it to cost
+            if 'credits' in data:
+                log.info('CREDITS PRESENT FOR THIS DATA')
+                # log.info(data)
+                cost = float(data['cost']['amount']) + float(data['credits'][0]['amount'])
+            else:
+                cost = float(data['cost']['amount'])
+
+            # check if there is projectnumber else add it as Not available
             if 'projectNumber' in data:
                 project_id = 'ID-' + str(data['projectNumber'])
             else:
-                project_id = 'None'
-            resource_type = str(data['lineItemId'])
-            account_id = str(data['accountId'])
-            usage_value = float(data['measurements'][0]['sum'])
-            measurement_unit = str(data['measurements'][0]['unit'])
+                project_id = 'Not Available'
+
+            if len(data['measurements']) != 0:
+                usage_value = float(data['measurements'][0]['sum'])
+                measurement_unit = str(data['measurements'][0]['unit'])
+            else:
+                usage_value = float(0)
+                measurement_unit = str('none')
             # log.info('INSERTING DATA INTO DB -- {0}'.format(data))
 
             is_duplicate = is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, usage_value,
@@ -224,6 +255,7 @@ def insert_usage_data(data_list, filename, service):
                 usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
                 db_session.add(usage)
                 data_count += 1
+
         db_session.commit()
         usage = dict(message=' data has been added to db')
         log.info(
@@ -249,7 +281,7 @@ def is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, u
             duplicate = False
         else:
             duplicate = True
-
+    # log.info(' Checking for duplicate data --{0} '.format(duplicate))
     return duplicate
 
 
