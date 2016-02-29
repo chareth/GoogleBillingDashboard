@@ -19,8 +19,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
 
-scheduler = []
-
+scheduler = BackgroundScheduler()
 
 def run_scheduler():
     global scheduler
