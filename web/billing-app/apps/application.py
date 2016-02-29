@@ -8,6 +8,7 @@ app = Flask(__name__)
 from apps.billing.views import mod as billingModule
 from apps.login.views import mod as loginModule
 from apps.billing.views import init_scheduler
+import sys, socket
 
 app.register_blueprint(billingModule)
 app.register_blueprint(loginModule)
@@ -24,8 +25,6 @@ log = logging.getLogger()
 
 
 init_scheduler()
-'''
-import sys, socket
 
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,4 +36,3 @@ else:
     print "scheduler started"
 
 
-'''
