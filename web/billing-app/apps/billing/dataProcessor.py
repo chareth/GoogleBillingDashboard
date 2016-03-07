@@ -21,6 +21,7 @@ import os
 
 scheduler = BackgroundScheduler()
 
+
 def run_scheduler():
     global scheduler
     log.info('---- In run_scheduler ----')
@@ -51,7 +52,7 @@ def reset_scheduler(hour, min):
     scheduler.print_jobs()
     log.info(' ----- IN RESET SCHEDULER -----')
     scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, replace_existing=True, max_instances=1,
-                             id='data_processor', args=['cron'])
+                      id='data_processor', args=['cron'])
     log.info('------ SCHEDULER RESET -----')
     log.info('------ Jobs List -----')
     scheduler.print_jobs()
@@ -103,7 +104,13 @@ def data_processor(job_type):
                 log.info('############################################################################################')
 
             else:
-                get_filenames(resp, service)
+                lock_file = check_for_lock_file(service)
+
+                if not lock_file:
+                    log.info('File was nto locked and hence locking it and processing the files')
+                    get_filenames(resp, service)
+                else:
+                    log.info(' File Locked --- Do Nothing -----')
 
             req = service.objects().list_next(req, resp)
 
@@ -129,15 +136,51 @@ def data_processor(job_type):
     return response
 
 
+def check_for_lock_file(service):
+    same = True
+
+    try:
+
+        log.info('------- GET THE LOCK FILE ------')
+        # Get Payload Data
+        req = service.objects().get(
+            bucket=BUCKET_NAME,
+            object='lockfile.txt')
+        get_file_meta_data = req.execute()
+
+        file_day = get_file_meta_data["updated"].split('-')[2].split(" ")[0].split("T")[0]
+        today = datetime.datetime.now().day
+        if today < 10:
+            today = '0' + str(today)
+
+        now_time = datetime.datetime.now().hour + 6
+        file_time = get_file_meta_data["updated"].split('-')[2].split(" ")[0].split("T")[1].split(":")[0]
+
+        time_diff = int(now_time) - int(file_time)
+        if file_day != today or time_diff > 1 or time_diff < -1:
+            log.info('---- Not Same day or time difference more than 1 -- Lock the file---')
+            copy_resp = copy_file_to_archive('lockfile.txt', service, BUCKET_NAME, BUCKET_NAME)
+            same = False
+        else:
+            same = True
+            log.info(' Same day and time difference less than 1 Do Nothing')
+
+    except Exception as e:
+        log.error(' Error in getting Lock file  -- {0}'.format(e[0]))
+
+    return same
+
+
 def get_filenames(resp, service):
     try:
         for key, items in resp.iteritems():
             for item in items:
                 log.info('############################################################################################')
                 filename = item['name']
-
+                if filename == 'lockfile.txt':
+                    continue
                 # ARCHIVE THE FILE FIRST
-                copy_resp = copy_file_to_archive(filename, service)
+                copy_resp = copy_file_to_archive(filename, service, BUCKET_NAME, ARCHIVE_BUCKET_NAME)
                 log.info(copy_resp)
                 if len(copy_resp) == 0:
                     log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
@@ -284,18 +327,18 @@ def is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, u
     return duplicate
 
 
-def copy_file_to_archive(filename, service):
+def copy_file_to_archive(filename, service, main_bucket, dest_bucket):
     resp = dict()
     try:
 
-        log.info('Starting to move the file to Archive ---- {0}'.format(filename))
+        log.info('Starting to move the file to {0} ---- {1}'.format(dest_bucket, filename))
 
-        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject=filename,
-                                             destinationBucket=ARCHIVE_BUCKET_NAME, destinationObject=filename,
+        copy_object = service.objects().copy(sourceBucket=main_bucket, sourceObject=filename,
+                                             destinationBucket=dest_bucket, destinationObject=filename,
                                              body={})
         resp = copy_object.execute()
 
-        log.info('DONE Moving of file - {0} to Archive -{1} '.format(filename, ARCHIVE_BUCKET_NAME))
+        log.info('DONE Moving of file - {0} to Archive -{1} '.format(filename, dest_bucket))
 
         # delete_moved_file(filename, service)
 
