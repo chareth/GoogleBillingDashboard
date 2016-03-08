@@ -22,7 +22,7 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_per_project_per_day_quarter
 
 from apps.config.apps_config import log
-from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial, reset_scheduler
+from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial
 
 import datetime
 import os
@@ -73,7 +73,7 @@ def load_data():
     min = request.args.get('min', None)  # minute (0-59)
 
     if hour is not None and min is not None:
-        response = reset_scheduler(hour, min)
+        response = set_scheduler(hour, min)
         message = 'Job  is set  -- ' + str(response.get_jobs()) + ' to run everyday  at ' + hour + '.' + min
         os.environ['SCHEDULER_HOUR'] = hour
         os.environ['SCHEDULER_MIN'] = min

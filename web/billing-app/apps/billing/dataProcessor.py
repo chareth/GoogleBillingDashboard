@@ -1,3 +1,5 @@
+import pytz
+
 __author__ = 'ashwini'
 
 """Command-line sample application for listing all objects in a bucket using
@@ -19,6 +21,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
 from sqlalchemy.exc import IntegrityError
+import random
 
 scheduler = BackgroundScheduler()
 
@@ -39,7 +42,10 @@ def set_scheduler(hour, min):
     scheduler.remove_all_jobs()
     scheduler.print_jobs()
     log.info(' ----- IN SET SCHEDULER -----')
-    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, replace_existing=True, max_instances=1,
+    scheduler.add_job(data_processor, 'cron', hour=get_time(hour, min)['hour'],
+                      minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
+                      replace_existing=True,
+                      max_instances=1,
                       id='data_processor', args=['cron'])
     log.info('------ SCHEDULER INIT -----')
     log.info('------ Jobs List -----')
@@ -47,17 +53,20 @@ def set_scheduler(hour, min):
     return scheduler
 
 
-def reset_scheduler(hour, min):
-    global scheduler
-    scheduler.remove_all_jobs()
-    scheduler.print_jobs()
-    log.info(' ----- IN RESET SCHEDULER -----')
-    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, replace_existing=True, max_instances=1,
-                      id='data_processor', args=['cron'])
-    log.info('------ SCHEDULER RESET -----')
-    log.info('------ Jobs List -----')
-    scheduler.print_jobs()
-    return scheduler
+def get_time(hour, mins):
+    rand_no = random.randint(1, 10)
+    mins = int(mins) + rand_no
+    if mins > 60:
+        hour += 1
+        if hour > 23:
+            hour = 0
+
+    time = dict(hour=hour, mins=mins, sec=utcnow().second)
+    return time
+
+
+def utcnow():
+    return datetime.datetime.now(tz=pytz.utc)
 
 
 def data_processor(job_type):
@@ -108,12 +117,19 @@ def data_processor(job_type):
                 lock_file = check_for_lock_file(service)
 
                 if not lock_file:
-                    log.info('File was nto locked and hence locking it and processing the files')
+                    log.info('File was not locked and hence locking it and processing the files')
                     get_filenames(resp, service)
                 else:
                     log.info(' File Locked --- Do Nothing -----')
 
             req = service.objects().list_next(req, resp)
+            if req is None:
+                # remove the lock for the metadata
+                update_done = update_lockfile(False, service)
+                if update_done:
+                    log.info('Updating the lock file after process done')
+                else:
+                    log.info('Updating the lock file after process not done')
 
 
     except Exception as e:
@@ -138,8 +154,7 @@ def data_processor(job_type):
 
 
 def check_for_lock_file(service):
-    same = True
-
+    locked = True
     try:
 
         log.info('------- GET THE LOCK FILE ------')
@@ -148,6 +163,38 @@ def check_for_lock_file(service):
             bucket=BUCKET_NAME,
             object='lockfile.txt')
         get_file_meta_data = req.execute()
+
+        # check for metadata -- lock
+        lock_metadata = None
+        file_day = get_file_meta_data["updated"].split('-')[2].split(" ")[0].split("T")[0]
+        today = datetime.datetime.now().day
+        now_time = utcnow().hour
+        file_time = get_file_meta_data["updated"].split('-')[2].split(" ")[0].split("T")[1].split(":")[0]
+
+        if today < 10:
+            today = '0' + str(today)
+
+        time_diff = int(now_time) - int(file_time)
+        same_day = (file_day == today)
+
+        if 'metadata' in get_file_meta_data and 'lock' in get_file_meta_data['metadata']:
+            lock_metadata = str(get_file_meta_data['metadata']['lock'])
+            # check for time difference if more than 1 then restart the process
+
+        if lock_metadata is not None and lock_metadata == 'true' and same_day and (time_diff < 1 or time_diff > -1):
+            log.info(' Lock metadata found and is true')
+            locked = True
+        else:
+            log.info(' No lock metadata found  or it was false')
+            log.info(' Add/update lock metadata ')
+            update_done = update_lockfile(True, service)
+            if update_done:
+                log.info(' Updating the lock file was done -- So start the process')
+                locked = False
+            else:
+                log.info(' Updating the lock file was not done -- So donot do anything')
+                locked = True
+        '''
 
         file_day = get_file_meta_data["updated"].split('-')[2].split(" ")[0].split("T")[0]
         today = datetime.datetime.now().day
@@ -165,11 +212,26 @@ def check_for_lock_file(service):
         else:
             same = True
             log.info(' Same day and time difference less than 1 Do Nothing')
-
+        '''
     except Exception as e:
         log.error(' Error in getting Lock file  -- {0}'.format(e[0]))
 
-    return same
+    return locked
+
+
+def update_lockfile(lock_value, service):
+    done = False
+    try:
+        resource = dict(metadata=dict(lock=lock_value))
+        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject='lockfile.txt',
+                                             destinationBucket=BUCKET_NAME, destinationObject='lockfile.txt',
+                                             body=resource)
+        resp = copy_object.execute()
+        done = True
+    except Exception as e:
+        log.error(' Error  while updating the lock file --- {0}'.format(e[0]))
+
+    return done
 
 
 def get_filenames(resp, service):
@@ -283,15 +345,15 @@ def insert_usage_data(data_list, filename, service):
             cost = float(data['cost']['amount'])
             if 'credits' in data:
                 cost = float(data['cost']['amount'])
-                log.info('CREDITS PRESENT FOR THIS DATA')
-                log.info('cost before-- {0}'.format(cost))
+                #log.info('CREDITS PRESENT FOR THIS DATA')
+                #log.info('cost before-- {0}'.format(cost))
                 for credit in data['credits']:
                     cost += float(credit['amount'])
-                    log.info('{0}<---->{1}<----->{2}<------>{3}'.format(usage_date, project_id, credit['amount'], cost))
-                log.info('cost after -- {0}'.format(cost))
+                    #log.info('{0}<---->{1}<----->{2}<------>{3}'.format(usage_date, project_id, credit['amount'], cost))
+                #log.info('cost after -- {0}'.format(cost))
 
             if cost == 0:
-                log.info('--- COST is 0 --- NOT adding to DB')
+                #log.info('--- COST is 0 --- NOT adding to DB')
                 continue
             else:
                 # log.info('INSERTING DATA INTO DB -- {0}'.format(data))
