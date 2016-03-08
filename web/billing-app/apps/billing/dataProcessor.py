@@ -18,6 +18,7 @@ from apps.billing.models import Usage
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
+from sqlalchemy.exc import IntegrityError
 
 scheduler = BackgroundScheduler()
 
@@ -266,14 +267,6 @@ def insert_usage_data(data_list, filename, service):
             account_id = str(data['accountId'])
             usage_date = datetime.datetime.strptime(
                 date.split("-")[0] + '-' + date.split("-")[1] + '-' + date.split("-")[2], "%Y-%m-%dT%H:%M:%S")
-            # check if credits is there if so then add it to cost
-            if 'credits' in data:
-                log.info('CREDITS PRESENT FOR THIS DATA')
-                # log.info(data)
-                cost = float(data['cost']['amount']) + float(data['credits'][0]['amount'])
-            else:
-                cost = float(data['cost']['amount'])
-
             # check if there is projectnumber else add it as Not available
             if 'projectNumber' in data:
                 project_id = 'ID-' + str(data['projectNumber'])
@@ -286,19 +279,30 @@ def insert_usage_data(data_list, filename, service):
             else:
                 usage_value = float(0)
                 measurement_unit = str('none')
-            # log.info('INSERTING DATA INTO DB -- {0}'.format(data))
+            # check if credits is there if so then add it to cost
+            cost = float(data['cost']['amount'])
+            if 'credits' in data:
+                cost = float(data['cost']['amount'])
+                log.info('CREDITS PRESENT FOR THIS DATA')
+                log.info('cost before-- {0}'.format(cost))
+                for credit in data['credits']:
+                    cost += float(credit['amount'])
+                    log.info('{0}<---->{1}<----->{2}<------>{3}'.format(usage_date, project_id, credit['amount'], cost))
+                log.info('cost after -- {0}'.format(cost))
 
-            is_duplicate = is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, usage_value,
-                                             measurement_unit)
-            if is_duplicate:
-                log.info('--------- DATA ALREADY IN DB -------- DUPLICATE DATA --------')
-                log.info(data)
+            if cost == 0:
+                log.info('--- COST is 0 --- NOT adding to DB')
+                continue
             else:
-                usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
-                db_session.add(usage)
-                data_count += 1
+                # log.info('INSERTING DATA INTO DB -- {0}'.format(data))
+                insert_done = insert_data(usage_date, cost, project_id, resource_type, account_id, usage_value,
+                                          measurement_unit)
+                if not insert_done:
+                    log.info(data)
+                    continue
+                else:
+                    data_count += 1
 
-        db_session.commit()
         usage = dict(message=' data has been added to db')
         log.info(
             'DONE adding {0} items out of {1} for file -- {2} into the db '.format(data_count, total_count, filename))
@@ -309,22 +313,28 @@ def insert_usage_data(data_list, filename, service):
     return usage
 
 
-def is_duplicate_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
-    duplicate = False
+def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
+    done = False
+    try:
+        usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
+        db_session.add(usage)
+        db_session.commit()
+        done = True
+    except IntegrityError as e:
+        log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
+        log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,
+                                                                       usage_value))
+        db_session.rollback()
+        usage = Usage.query.filter_by(project_id=project_id, usage_date=usage_date, resource_type=resource_type).first()
+        usage.cost = cost
+        usage.usage_value = usage_value
+        usage.measurement_unit = measurement_unit
+        db_session.commit()
 
-    data = db_session.query(Usage.project_id).filter(Usage.usage_date == usage_date, Usage.cost == cost,
-                                                     Usage.project_id == project_id,
-                                                     Usage.resource_type == resource_type,
-                                                     Usage.account_id == account_id,
-                                                     Usage.usage_value == usage_value,
-                                                     Usage.measurement_unit == measurement_unit).all()
-    for id in data:
-        if len(id[0]) == 0:
-            duplicate = False
-        else:
-            duplicate = True
-    # log.info(' Checking for duplicate data --{0} '.format(duplicate))
-    return duplicate
+        done = True
+    except Exception as e:
+        log.error(' ------------- ERROR IN ADDING DATA TO THE DB ------------- {0}'.format(e[0]))
+    return done
 
 
 def copy_file_to_archive(filename, service, main_bucket, dest_bucket):
