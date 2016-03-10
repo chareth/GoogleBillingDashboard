@@ -285,7 +285,6 @@ def get_filenames(resp, service, random_number):
 
     except Exception as e:
         log.error('Error in accessing File -- {0}'.format(e[0]))
-        pass
 
 
 def get_file(filename, service):
