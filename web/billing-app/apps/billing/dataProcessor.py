@@ -55,13 +55,17 @@ def set_scheduler(hour, min):
 
 
 def get_time(hour, mins):
+
+    '''
+    Add this if you need to have multiple processes in the same instance
     rand_no = random.randint(1, 10)
     mins = int(mins) + rand_no
+    hour = int(hour)
     if mins > 60:
         hour += 1
         if hour > 23:
             hour = 0
-
+    '''
     time = dict(hour=hour, mins=mins, sec=utcnow().second)
     return time
 
@@ -80,7 +84,6 @@ def data_processor(job_type):
         archive_bucket = ARCHIVE_BUCKET_NAME
         random_number = binascii.hexlify(os.urandom(32)).decode()
         log.info(' RANDOM NUMBER --- {0}'.format(random_number))
-        print random_number
 
         # Get the application default credentials. When running locally, these are
         # available after running `gcloud init`. When running on compute
@@ -119,23 +122,9 @@ def data_processor(job_type):
                 log.info('############################################################################################')
 
             else:
-                lock_file = check_for_lock_file(random_number, service)
-
-                if not lock_file:
-                    log.info('File was not locked and hence locking it and processing the files')
-                    get_filenames(resp, service)
-                else:
-                    log.info(' File Locked --- Do Nothing -----')
-                    break
+                get_filenames(resp, service, random_number)
 
             req = service.objects().list_next(req, resp)
-            if req is None and not lock_file:
-                # remove the lock for the metadata
-                update_done = update_lockfile(random_number, service)
-                if update_done:
-                    log.info('Updating the lock file after process done')
-                else:
-                    log.info('Updating the lock file after process not done')
 
     except Exception as e:
         log.error(' Error in getting Bucket Details - {0}'.format(e[0]))
@@ -158,51 +147,73 @@ def data_processor(job_type):
     return response
 
 
-def check_for_lock_file(random_no, service):
+def check_for_lock_file(filename, random_no, service):
     locked = True
     try:
+        log.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
-        log.info('------- GET THE LOCK FILE ------')
+        log.info('------- GET THE {0} -- {1}------'.format(filename, random_no))
         # Get Payload Data
         req = service.objects().get(
             bucket=BUCKET_NAME,
-            object='lockfile.txt')
+            object=filename)
         get_file_meta_data = req.execute()
+
 
         # check for metadata -- lock
         lock_metadata = None
-        file_day = get_file_meta_data["updated"].split('-')[2].split(" ")[0].split("T")[0]
-        today = datetime.datetime.now().day
-        now_time = utcnow().hour
-        file_time = get_file_meta_data["updated"].split('-')[2].split(" ")[0].split("T")[1].split(":")[0]
+        startTime_metadata = None
+        startTime_metadata_day = None
+        startTime_metadata_month = None
+        startTime_metadata_hour = None
+
+        hourdiff = 0
+        mindiff = 0
+
+        today = utcnow().day
+        thisMonth = utcnow().month
+        now_hour = utcnow().hour
+        now_min = utcnow().minute
 
         if today < 10:
             today = '0' + str(today)
-
-        time_diff = int(now_time) - int(file_time)
-        same_day = (file_day == today)
+        if thisMonth < 10:
+            thisMonth = '0' + str(thisMonth)
 
         if 'metadata' in get_file_meta_data and 'lock' in get_file_meta_data['metadata']:
             lock_metadata = str(get_file_meta_data['metadata']['lock'])
-            # check for time difference if more than 1 then restart the process
 
-        if lock_metadata is not None and lock_metadata == random_no and (
-                    same_day and (time_diff < 1 or time_diff > -1)):
-            log.info(' Lock metadata found and is true')
+        if 'metadata' in get_file_meta_data and 'startTime' in get_file_meta_data['metadata']:
+            startTime_metadata = str(get_file_meta_data['metadata']['startTime'])
+            startTime_metadata_month = startTime_metadata.split('-')[1]
+            startTime_metadata_day = startTime_metadata.split('-')[2].split(" ")[0]
+            startTime_metadata_hour = startTime_metadata.split('-')[2].split(" ")[1].split(":")[0]
+            startTime_metadata_min = startTime_metadata.split('-')[2].split(" ")[1].split(":")[1]
+            # check for time difference if more than 1 then restart the process
+            hourdiff = int(now_hour) - int(startTime_metadata_hour)
+            mindiff = int(now_min) - int(startTime_metadata_hour)
+
+        log.info('METADATA -- {0} -- {1}'.format(lock_metadata, startTime_metadata))
+
+
+        if lock_metadata is not None and startTime_metadata is not None \
+                and startTime_metadata_day == str(today) and startTime_metadata_month == str(thisMonth)\
+                and mindiff > 30:
+            log.info(' Lock metadata found and is same day')
             locked = True
         else:
-            log.info(' No lock metadata found  or it was false')
-            log.info(' Add/update lock metadata ')
-            update_done = update_lockfile(random_no, service)
+            log.info(' No lock metadata found  or StartTime was old')
+            update_done = update_lockfile(filename, random_no, service)
             if update_done:
-                log.info(' Updating the lock file was done -- Recheck for the random no')
+                log.info(' Updating the lock file was done -- Recheck for the random no --{0}'.format(random_no))
                 req = service.objects().get(
                     bucket=BUCKET_NAME,
-                    object='lockfile.txt')
+                    object=filename)
                 get_file_meta_data = req.execute()
                 lock_metadata = str(get_file_meta_data['metadata']['lock'])
                 if lock_metadata == random_no:
-                    log.info(' Checking for random No done   and MATCHED -- Start the process')
+                    log.info(' Checking for random No done   and MATCHED  -- Start the process --{0}'.format(random_no))
+                    log.info(' File --{0}'.format(filename))
                     locked = False
                 else:
                     log.info(' Checking for random No done   and DID NOT MATCH -- DO NOTHING')
@@ -210,6 +221,7 @@ def check_for_lock_file(random_no, service):
             else:
                 log.info(' Updating the lock file was not done -- So donot do anything')
                 locked = True
+        log.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 
     except Exception as e:
@@ -218,12 +230,12 @@ def check_for_lock_file(random_no, service):
     return locked
 
 
-def update_lockfile(lock_value, service):
+def update_lockfile(filename, lock_value, service):
     done = False
     try:
-        resource = dict(metadata=dict(lock=lock_value))
-        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject='lockfile.txt',
-                                             destinationBucket=BUCKET_NAME, destinationObject='lockfile.txt',
+        resource = dict(metadata=dict(lock=lock_value, startTime=str(utcnow())))
+        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject=filename,
+                                             destinationBucket=BUCKET_NAME, destinationObject=filename,
                                              body=resource)
         resp = copy_object.execute()
         done = True
@@ -233,7 +245,7 @@ def update_lockfile(lock_value, service):
     return done
 
 
-def get_filenames(resp, service):
+def get_filenames(resp, service, random_number):
     try:
         for key, items in resp.iteritems():
 
@@ -241,37 +253,39 @@ def get_filenames(resp, service):
                 log.info('############################################################################################')
                 filename = item['name']
 
-                if len(items) == 1 and filename == 'lockfile.txt':
-                    log.info(' NO FILES TO PROCESS ')
-                    log.info('########################################################################################')
-                    continue
-                # ARCHIVE THE FILE FIRST
-                copy_resp = copy_file_to_archive(filename, service, BUCKET_NAME, ARCHIVE_BUCKET_NAME)
-                log.info(copy_resp)
-                if len(copy_resp) == 0:
-                    log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
-                else:
-                    log.info(' COPYING FILE DONE ')
-                    log.info('Getting file -- {0}'.format(filename))
-                    get_file_resp = get_file(filename, service)
-                    if len(get_file_resp) == 0:
-                        log.error('Error in getting file -- {0}'.format(get_file_resp))
-                    else:
-                        process_file_resp = process_file(filename, get_file_resp, service)
-                        if len(process_file_resp) == 0:
-                            log.error('Error in Processing file -- {0}'.format(filename))
-                        else:
-                            delete_resp = delete_file(filename, service)  # type is string if success
+                lock_file = check_for_lock_file(filename, random_number, service)
 
-                            if isinstance(delete_resp, dict) and len(delete_resp) == 0:
-                                log.error(' Error in Deleting file --- {0} '.format(filename))
+                if not lock_file:
+                    log.info('File was not locked and hence locking it and processing the files')
+                    # ARCHIVE THE FILE FIRST
+                    copy_resp = copy_file_to_archive(filename, service, BUCKET_NAME, ARCHIVE_BUCKET_NAME)
+                    log.info(copy_resp)
+                    if len(copy_resp) == 0:
+                        log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
+                    else:
+                        log.info(' COPYING FILE DONE ')
+                        log.info('Getting file -- {0}'.format(filename))
+                        get_file_resp = get_file(filename, service)
+                        if len(get_file_resp) == 0:
+                            log.error('Error in getting file -- {0}'.format(get_file_resp))
+                        else:
+                            process_file_resp = process_file(filename, get_file_resp, service)
+                            if len(process_file_resp) == 0:
+                                log.error('Error in Processing file -- {0}'.format(filename))
+                            else:
+                                delete_resp = delete_file(filename, service)  # type is string if success
+
+                                if isinstance(delete_resp, dict) and len(delete_resp) == 0:
+                                    log.error(' Error in Deleting file --- {0} '.format(filename))
+                else:
+                    log.info(' {0} Locked --- Do Nothing -----'.format(filename))
+                    continue
 
                 log.info('############################################################################################')
 
-
-
     except Exception as e:
         log.error('Error in accessing File -- {0}'.format(e[0]))
+        pass
 
 
 def get_file(filename, service):
@@ -386,9 +400,8 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
         db_session.commit()
         done = True
     except IntegrityError as e:
-        log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
-        log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,
-                                                                       usage_value))
+        # log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
+        # log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
         db_session.rollback()
         usage = Usage.query.filter_by(project_id=project_id, usage_date=usage_date, resource_type=resource_type).first()
         usage.cost = cost
