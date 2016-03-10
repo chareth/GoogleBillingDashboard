@@ -198,7 +198,7 @@ def check_for_lock_file(filename, random_no, service):
 
         if lock_metadata is not None and startTime_metadata is not None \
                 and startTime_metadata_day == str(today) and startTime_metadata_month == str(thisMonth)\
-                and mindiff > 30:
+                and mindiff < 30:
             log.info(' Lock metadata found and is same day')
             locked = True
         else:
