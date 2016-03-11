@@ -1,3 +1,5 @@
+import pytz
+
 __author__ = 'ashwini'
 
 """Command-line sample application for listing all objects in a bucket using
@@ -19,6 +21,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
 from sqlalchemy.exc import IntegrityError
+import random
+import binascii
 
 scheduler = BackgroundScheduler()
 
@@ -39,7 +43,10 @@ def set_scheduler(hour, min):
     scheduler.remove_all_jobs()
     scheduler.print_jobs()
     log.info(' ----- IN SET SCHEDULER -----')
-    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, replace_existing=True, max_instances=1,
+    scheduler.add_job(data_processor, 'cron', hour=get_time(hour, min)['hour'],
+                      minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
+                      replace_existing=True,
+                      max_instances=1,
                       id='data_processor', args=['cron'])
     log.info('------ SCHEDULER INIT -----')
     log.info('------ Jobs List -----')
@@ -47,26 +54,36 @@ def set_scheduler(hour, min):
     return scheduler
 
 
-def reset_scheduler(hour, min):
-    global scheduler
-    scheduler.remove_all_jobs()
-    scheduler.print_jobs()
-    log.info(' ----- IN RESET SCHEDULER -----')
-    scheduler.add_job(data_processor, 'cron', hour=hour, minute=min, replace_existing=True, max_instances=1,
-                      id='data_processor', args=['cron'])
-    log.info('------ SCHEDULER RESET -----')
-    log.info('------ Jobs List -----')
-    scheduler.print_jobs()
-    return scheduler
+def get_time(hour, mins):
+
+    '''
+    Add this if you need to have multiple processes in the same instance
+    rand_no = random.randint(1, 10)
+    mins = int(mins) + rand_no
+    hour = int(hour)
+    if mins > 60:
+        hour += 1
+        if hour > 23:
+            hour = 0
+    '''
+    time = dict(hour=hour, mins=mins, sec=utcnow().second)
+    return time
+
+
+def utcnow():
+    return datetime.datetime.now(tz=pytz.utc)
 
 
 def data_processor(job_type):
     status = 200
     message = 'Prcoess Complete '
     startTime = datetime.datetime.now()
+    lock_file = True
     try:
         bucket = BUCKET_NAME
         archive_bucket = ARCHIVE_BUCKET_NAME
+        random_number = binascii.hexlify(os.urandom(32)).decode()
+        log.info(' RANDOM NUMBER --- {0}'.format(random_number))
 
         # Get the application default credentials. When running locally, these are
         # available after running `gcloud init`. When running on compute
@@ -105,10 +122,9 @@ def data_processor(job_type):
                 log.info('############################################################################################')
 
             else:
-                get_filenames(resp, service)
+                get_filenames(resp, service, random_number)
 
             req = service.objects().list_next(req, resp)
-
 
     except Exception as e:
         log.error(' Error in getting Bucket Details - {0}'.format(e[0]))
@@ -131,37 +147,141 @@ def data_processor(job_type):
     return response
 
 
-def get_filenames(resp, service):
+def check_for_lock_file(filename, random_no, service):
+    locked = True
+    try:
+        log.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
+        log.info('------- GET THE {0} -- {1}------'.format(filename, random_no))
+        # Get Payload Data
+        req = service.objects().get(
+            bucket=BUCKET_NAME,
+            object=filename)
+        get_file_meta_data = req.execute()
+
+
+        # check for metadata -- lock
+        lock_metadata = None
+        startTime_metadata = None
+        startTime_metadata_day = None
+        startTime_metadata_month = None
+        startTime_metadata_hour = None
+
+        hourdiff = 0
+        mindiff = 0
+
+        today = utcnow().day
+        thisMonth = utcnow().month
+        now_hour = utcnow().hour
+        now_min = utcnow().minute
+
+        if today < 10:
+            today = '0' + str(today)
+        if thisMonth < 10:
+            thisMonth = '0' + str(thisMonth)
+
+        if 'metadata' in get_file_meta_data and 'lock' in get_file_meta_data['metadata']:
+            lock_metadata = str(get_file_meta_data['metadata']['lock'])
+
+        if 'metadata' in get_file_meta_data and 'startTime' in get_file_meta_data['metadata']:
+            startTime_metadata = str(get_file_meta_data['metadata']['startTime'])
+            startTime_metadata_month = startTime_metadata.split('-')[1]
+            startTime_metadata_day = startTime_metadata.split('-')[2].split(" ")[0]
+            startTime_metadata_hour = startTime_metadata.split('-')[2].split(" ")[1].split(":")[0]
+            startTime_metadata_min = startTime_metadata.split('-')[2].split(" ")[1].split(":")[1]
+            # check for time difference if more than 1 then restart the process
+            hourdiff = int(now_hour) - int(startTime_metadata_hour)
+            mindiff = int(now_min) - int(startTime_metadata_hour)
+
+        log.info('METADATA -- {0} -- {1}'.format(lock_metadata, startTime_metadata))
+
+
+        if lock_metadata is not None and startTime_metadata is not None \
+                and startTime_metadata_day == str(today) and startTime_metadata_month == str(thisMonth)\
+                and mindiff < 30:
+            log.info(' Lock metadata found and is same day')
+            locked = True
+        else:
+            log.info(' No lock metadata found  or StartTime was old')
+            update_done = update_lockfile(filename, random_no, service)
+            if update_done:
+                log.info(' Updating the lock file was done -- Recheck for the random no --{0}'.format(random_no))
+                req = service.objects().get(
+                    bucket=BUCKET_NAME,
+                    object=filename)
+                get_file_meta_data = req.execute()
+                lock_metadata = str(get_file_meta_data['metadata']['lock'])
+                if lock_metadata == random_no:
+                    log.info(' Checking for random No done   and MATCHED  -- Start the process --{0}'.format(random_no))
+                    log.info(' File --{0}'.format(filename))
+                    locked = False
+                else:
+                    log.info(' Checking for random No done   and DID NOT MATCH -- DO NOTHING')
+                    locked = True
+            else:
+                log.info(' Updating the lock file was not done -- So donot do anything')
+                locked = True
+        log.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
+
+    except Exception as e:
+        log.error(' Error in getting Lock file  -- {0}'.format(e[0]))
+
+    return locked
+
+
+def update_lockfile(filename, lock_value, service):
+    done = False
+    try:
+        resource = dict(metadata=dict(lock=lock_value, startTime=str(utcnow())))
+        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject=filename,
+                                             destinationBucket=BUCKET_NAME, destinationObject=filename,
+                                             body=resource)
+        resp = copy_object.execute()
+        done = True
+    except Exception as e:
+        log.error(' Error  while updating the lock file --- {0}'.format(e[0]))
+
+    return done
+
+
+def get_filenames(resp, service, random_number):
     try:
         for key, items in resp.iteritems():
+
             for item in items:
                 log.info('############################################################################################')
                 filename = item['name']
 
-                # ARCHIVE THE FILE FIRST
-                copy_resp = copy_file_to_archive(filename, service)
-                log.info(copy_resp)
-                if len(copy_resp) == 0:
-                    log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
-                else:
-                    log.info(' COPYING FILE DONE ')
-                    log.info('Getting file -- {0}'.format(filename))
-                    get_file_resp = get_file(filename, service)
-                    if len(get_file_resp) == 0:
-                        log.error('Error in getting file -- {0}'.format(get_file_resp))
-                    else:
-                        process_file_resp = process_file(filename, get_file_resp, service)
-                        if len(process_file_resp) == 0:
-                            log.error('Error in Processing file -- {0}'.format(filename))
-                        else:
-                            delete_resp = delete_file(filename, service)  # type is string if success
+                lock_file = check_for_lock_file(filename, random_number, service)
 
-                            if isinstance(delete_resp, dict) and len(delete_resp) == 0:
-                                log.error(' Error in Deleting file --- {0} '.format(filename))
+                if not lock_file:
+                    log.info('File was not locked and hence locking it and processing the files')
+                    # ARCHIVE THE FILE FIRST
+                    copy_resp = copy_file_to_archive(filename, service, BUCKET_NAME, ARCHIVE_BUCKET_NAME)
+                    log.info(copy_resp)
+                    if len(copy_resp) == 0:
+                        log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
+                    else:
+                        log.info(' COPYING FILE DONE ')
+                        log.info('Getting file -- {0}'.format(filename))
+                        get_file_resp = get_file(filename, service)
+                        if len(get_file_resp) == 0:
+                            log.error('Error in getting file -- {0}'.format(get_file_resp))
+                        else:
+                            process_file_resp = process_file(filename, get_file_resp, service)
+                            if len(process_file_resp) == 0:
+                                log.error('Error in Processing file -- {0}'.format(filename))
+                            else:
+                                delete_resp = delete_file(filename, service)  # type is string if success
+
+                                if isinstance(delete_resp, dict) and len(delete_resp) == 0:
+                                    log.error(' Error in Deleting file --- {0} '.format(filename))
+                else:
+                    log.info(' {0} Locked --- Do Nothing -----'.format(filename))
+                    continue
 
                 log.info('############################################################################################')
-
-
 
     except Exception as e:
         log.error('Error in accessing File -- {0}'.format(e[0]))
@@ -241,15 +361,15 @@ def insert_usage_data(data_list, filename, service):
             cost = float(data['cost']['amount'])
             if 'credits' in data:
                 cost = float(data['cost']['amount'])
-                log.info('CREDITS PRESENT FOR THIS DATA')
-                log.info('cost before-- {0}'.format(cost))
+                # log.info('CREDITS PRESENT FOR THIS DATA')
+                # log.info('cost before-- {0}'.format(cost))
                 for credit in data['credits']:
                     cost += float(credit['amount'])
-                    log.info('{0}<---->{1}<----->{2}<------>{3}'.format(usage_date, project_id, credit['amount'], cost))
-                log.info('cost after -- {0}'.format(cost))
+                    # log.info('{0}<---->{1}<----->{2}<------>{3}'.format(usage_date, project_id, credit['amount'], cost))
+                    # log.info('cost after -- {0}'.format(cost))
 
             if cost == 0:
-                log.info('--- COST is 0 --- NOT adding to DB')
+                # log.info('--- COST is 0 --- NOT adding to DB')
                 continue
             else:
                 # log.info('INSERTING DATA INTO DB -- {0}'.format(data))
@@ -279,9 +399,8 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
         db_session.commit()
         done = True
     except IntegrityError as e:
-        log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
-        log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,
-                                                                       usage_value))
+        # log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
+        # log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
         db_session.rollback()
         usage = Usage.query.filter_by(project_id=project_id, usage_date=usage_date, resource_type=resource_type).first()
         usage.cost = cost
@@ -295,18 +414,18 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
     return done
 
 
-def copy_file_to_archive(filename, service):
+def copy_file_to_archive(filename, service, main_bucket, dest_bucket):
     resp = dict()
     try:
 
-        log.info('Starting to move the file to Archive ---- {0}'.format(filename))
+        log.info('Starting to move the file to {0} ---- {1}'.format(dest_bucket, filename))
 
-        copy_object = service.objects().copy(sourceBucket=BUCKET_NAME, sourceObject=filename,
-                                             destinationBucket=ARCHIVE_BUCKET_NAME, destinationObject=filename,
+        copy_object = service.objects().copy(sourceBucket=main_bucket, sourceObject=filename,
+                                             destinationBucket=dest_bucket, destinationObject=filename,
                                              body={})
         resp = copy_object.execute()
 
-        log.info('DONE Moving of file - {0} to Archive -{1} '.format(filename, ARCHIVE_BUCKET_NAME))
+        log.info('DONE Moving of file - {0} to Archive -{1} '.format(filename, dest_bucket))
 
         # delete_moved_file(filename, service)
 
