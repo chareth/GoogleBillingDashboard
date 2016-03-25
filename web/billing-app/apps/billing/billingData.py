@@ -25,8 +25,6 @@ from apps.billing.billingDBQuery import get_distinct_projects, get_resource_list
     Global values center
 '''
 
-
-
 '''
     get the list of projects
 '''
@@ -35,10 +33,10 @@ from apps.billing.billingDBQuery import get_distinct_projects, get_resource_list
 def get_project_list_data():
     project_list = dict()
     status = 200
+    project_names = []
 
     try:
         log.info('In Project List Data ----')
-        
 
         projects = get_distinct_projects()
         cost_center_projects = set_global_cost_center_list()
@@ -51,12 +49,14 @@ def get_project_list_data():
                 elif project[0] not in project_list:
                     project_list[project[0]] = project[0]
 
+        for (id, names) in project_list.iteritems():
+            project_names.append(names)
     except Exception as e:
         log_error(e[0])
         status = 500
         project_list['message'] = str(e[0])
 
-    response = dict(data=project_list, status=status)
+    response = dict(data=project_names, status=status)
 
     return response
 
@@ -71,28 +71,33 @@ def get_project_list_data():
 
 def project_list_per_center(center):
     log.info(' IN PROJECT LIST PER CENTER __ {0}'.format(center))
-    
-    cost_center_list = set_global_cost_center_list()
-
     project_list_center = ''
     project_list_center_arr = []
     project_list_center_arr_id = []
     project_center_all_list = []
+    project_list_local = []
+    status = 200
 
-    for project in cost_center_list:
-        project_center_all_list.append(project['project_id'])
-        if project['cost_center'] == center:
-            project_list_center += ",'" + project['project_id'] + "'"
-            if center.lower() == 'other' and project['project_name'] == project['project_id']:
-                project_list_center_arr.append(project['project_id'])
-            else:
-                project_list_center_arr.append(project['project_name'])
+    try:
+        cost_center_list = set_global_cost_center_list()
 
-            project_list_center_arr_id.append(project['project_id'])
+        for project in cost_center_list:
+            project_center_all_list.append(project['project_id'])
+            if project['cost_center'] == center:
+                project_list_center += ",'" + project['project_id'] + "'"
+                if center.lower() == 'other' and project['project_name'] == project['project_id']:
+                    project_list_center_arr.append(project['project_id'])
+                else:
+                    project_list_center_arr.append(project['project_name'])
 
-    project_list_local = project_list_center_arr
+                project_list_center_arr_id.append(project['project_id'])
 
-    return {'list': project_list_local, 'ids': project_list_center_arr_id}
+        project_list_local = project_list_center_arr
+    except Exception as e:
+        status = 500
+
+    return {'list': project_list_local, 'ids': project_list_center_arr_id, 'data': project_list_center_arr,
+            'status': status}
 
 
 '''
@@ -108,7 +113,6 @@ def resource_list_per_project(center, project):
 
     log.info('IN RESOURCE_LIST_PER_PROJECT -- {0} -- {1}'.format(center, project))
 
-    
     cost_center_list = set_global_cost_center_list()
 
     for project_info in cost_center_list:
@@ -553,7 +557,7 @@ def get_costs_per_cost_month(year, value_to_match, output_type):
     status = 200
     try:
 
-        
+
         cost_center_list = set_global_cost_center_list()
         new_dict = dict()
         projects_list = []
@@ -616,7 +620,7 @@ def get_costs_per_center_month(year, month, center, output_type):
 
     try:
 
-        
+
         cost_center_list = set_global_cost_center_list()
         project_list_local = project_list_per_center(center)['list']
         project_id_local = project_list_per_center(center)['ids']
@@ -692,7 +696,7 @@ def get_costs_per_center_week(year, week, center, output_type):
     status = 200
     try:
 
-        
+
         cost_center_list = set_global_cost_center_list()
         project_list_local = project_list_per_center(center)['list']
         project_id_local = project_list_per_center(center)['ids']
@@ -1196,7 +1200,6 @@ def get_center_list(unique):
     log_output('in get center list ------')
 
     cost_center_list = []
-    
 
     if unique:
         center_list = get_cost_centers(unique)
@@ -1204,8 +1207,8 @@ def get_center_list(unique):
 
         for (cost_center) in center_list:
             cost_center_list.append(cost_center[0])
-
-        cost_center_list.append('other')
+        if 'other' not in cost_center_list:
+            cost_center_list.append('other')
     else:
         cost_center_list = set_global_cost_center_list()
 

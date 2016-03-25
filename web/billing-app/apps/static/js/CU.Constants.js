@@ -16,6 +16,7 @@ CU = {
     'version_url':'/version/' ,
     'usage_url':'/usage/' ,
     'projects_url':'/project/' ,
+    'quota_url':'/quota/' ,
 
     'usage_error_msg' : 'Error while getting the Usage Data. Try again later!!',
     'error_msg' : 'Error while getting the Data. Try again later!!',

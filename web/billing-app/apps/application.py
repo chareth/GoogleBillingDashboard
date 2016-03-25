@@ -7,11 +7,13 @@ app = Flask(__name__)
 
 from apps.billing.views import mod as billingModule
 from apps.login.views import mod as loginModule
+from apps.quota.views import mod as quotaModule
 from apps.billing.views import init_scheduler
 import sys, socket
 
 app.register_blueprint(billingModule)
 app.register_blueprint(loginModule)
+app.register_blueprint(quotaModule)
 
 
 @app.teardown_appcontext
@@ -23,12 +25,13 @@ def shutdown_session(exception=None):
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
+
 '''
   Init scheduler only once for all the workers
 '''
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(("127.0.0.1", 47200))
+    sock.bind(("127.0.0.1", 47500))
 except socket.error:
     print "!!!scheduler already started, DO NOTHING"
 else:

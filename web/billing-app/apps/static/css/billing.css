@@ -58,3 +58,7 @@
     display: inline-block;
     padding-top: 40px;
 }
+
+.main_page.panel-body {
+    min-height: 100px;
+}

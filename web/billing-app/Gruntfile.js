@@ -28,6 +28,10 @@ module.exports = function (grunt) {
             billing_js: {
                 src: ['<%= static_js_dir %>/controllers/billing/*', '<%= static_js_dir %>/services/billing/*', '<%= static_js_dir %>/filters/*'],
                 dest: '<%= assets_js_dir %>/billing.js'
+            },
+            quota_js: {
+                src: ['<%= static_js_dir %>/services/billing/*','<%= static_js_dir %>/controllers/quota/*', '<%= static_js_dir %>/services/quota/*', '<%= static_js_dir %>/filters/*'],
+                dest: '<%= assets_js_dir %>/quota.js'
             }
 
 
@@ -40,7 +44,8 @@ module.exports = function (grunt) {
             dist: {
                 files: {
                     'apps/static/assets/js/menu_login.min.js': ['<%= concat.menu_login_js.dest %>'],
-                    'apps/static/assets/js/billing.min.js': ['<%= concat.billing_js.dest %>']
+                    'apps/static/assets/js/billing.min.js': ['<%= concat.billing_js.dest %>'],
+                    'apps/static/assets/js/quota.min.js': ['<%= concat.quota_js.dest %>']
                 }
             }
         },
