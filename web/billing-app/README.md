@@ -22,7 +22,8 @@ This README will give a detailed steps need to get the python app and running as
 
 # Requirements
 * Google Compute Instance account if using this for development
-
+* Enabled the billing export as **JSON**  for the account
+* Correct permissions for the bucket -- read and write as we have to update the metadata on the file and also move it to archive bucket
 * Env Vars: The following environment variables need to be available to the process. These are passed in with docker-compose through the common.env file 
 
   MYSQL_HOST  
@@ -30,7 +31,9 @@ This README will give a detailed steps need to get the python app and running as
   MYSQL_PASS  
   MYSQL_DBNAME  
   BUCKET_NAME    
-  ARCHIVE_BUCKET_NAME
+  ARCHIVE_BUCKET_NAME  
+  SCHEDULER_HOUR  
+  SCHEDULER_MIN  
 
 * If running locally then set the path to the json file for the service account
   GOOGLE_APPLICATION_CREDENTIALS in apps_config
