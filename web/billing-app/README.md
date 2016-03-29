@@ -10,12 +10,17 @@ cost centers associated then all the projects are placed under 'Other'. Clicking
 the chart for the overall cost for the year in that center. From there you can get other details by changing the drop
 down or by clicking on the graph.  
 **URLs**  :  
-   **/** -- Landing page  
-   **/billing** -- Billing Cost per cost center
-   **/billing/cost_center/#?span=year&span_view=2015&&view_by=month&cost_center=all&project=all&resource=all** -- Overall cost for all cost centers.
-   By changing the parameters in the url you can get the corresponding data.  
-    **/billing/loadData?hour=0-23&min=0-59** -- Change the scheduler time with the hour and min specified in the url.   
-    **/billing/loadData** -- To run the data loading process immediatley.
+  Landing page  :   
+  **/**   
+   Billing Cost per cost center :   
+   **/billing**   
+   Overall cost for all cost centers :  
+   **/billing/cost_center/#?span=year&span_view=2015&&view_by=month&cost_center=all&project=all&resource=all**  
+   By changing the parameters in the url you can get the corresponding data.   
+   Change the scheduler time with the hour and min specified in the url :  
+   **/billing/loadData?hour=0-23&min=0-59**   
+   To run the data loading process immediatley :   
+   **/billing/loadData**  
    There is a login button that will control who can add project into info into the 'Project' table.    
 This README will give a detailed steps need to get the python app and running assuming the DB is already set up and data populated by the Java utility.  
 
