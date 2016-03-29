@@ -50,21 +50,27 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
     /* on location change call filter change with the updated params
      * */
     $scope.$on('$locationChangeSuccess', function (next, current) {
-      $log.info('Location Change Called');
       var params = $location.search();
+      $log.info('Location Change Called');
+      $log.info(params);
+      $log.info($scope.centerSelected);
+      $log.info($scope.projectSelected);
+
       if (params.cost_center && !params.project) {
+        $log.info('Project Not There');
+
         $scope.centerSelected = params.cost_center;
-        $scope.setDefaults('one');
+        $scope.projectSelected = 'one';
+        $scope.setDefaults($scope.projectSelected);
         if ($scope.costCenterList.length == 0) {
           getCostCenterList();
-        } else if ($scope.projectList.length == 0) {
-          $scope.getProjectList();
         }
       } else if (params.cost_center && params.project != 'one') {
         $scope.centerSelected = params.cost_center;
         $scope.projectSelected = params.project;
-        $scope.getCPUQuota();
+        $scope.setDefaults($scope.projectSelected);
       }
+       $scope.getProjectList();
     });
 
     $scope.updateURLParams = function updateURLParams(center, project) {
@@ -93,10 +99,11 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
         $scope.regionsList = [];
         $scope.metricsList = [];
         $scope.regionList = [];
-        $scope.loading = true;
-        $scope.fail = false;
 
       }
+      $scope.loading = true;
+      $scope.fail = false;
+
     };
     var getCostCenterList = function getCostCenterList() {
       UsageCost.getCostCenterList(true).then(function (value) {
