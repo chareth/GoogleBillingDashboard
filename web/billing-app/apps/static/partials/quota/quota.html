@@ -32,6 +32,7 @@
                         <select class="form-control" ng-model="projectSelected"
                                 ng-change="updateURLParams(centerSelected,projectSelected)">
                             <option value="one">Select One</option>
+                            <option value="all">All</option>
                             <option ng-repeat="name in projectList" value="{{ name }}"
                                     ng-selected="{{ name == projectSelected }}">{{ name  | uppercase }}</option>
                         </select>
@@ -42,7 +43,7 @@
                     <label class="col-md-4 text-right" style="padding: 5px;"> Filter By Region:</label>
 
                     <div class="col-md-8">
-                        <select class="form-control" ng-model="regionSelected">
+                        <select class="form-control" ng-model="regionSelected" ng-change="getTotal()">
                             <option value="">View All</option>
                             <option ng-repeat="name in regionList" value="{{ name }}"
                                     ng-selected="{{ name == regionSelected }}">{{ name  | uppercase }}</option>
@@ -51,10 +52,10 @@
 
                 </div>
                 <div class="col-md-6" ng-show="metricsList.length">
-                    <label class="col-md-4 text-right" style="padding: 5px;"> Filter By Region:</label>
+                    <label class="col-md-4 text-right" style="padding: 5px;"> Filter By Metric:</label>
 
                     <div class="col-md-8 mB-10">
-                        <select class="form-control" ng-model="metricSelected">
+                        <select class="form-control" ng-model="metricSelected" ng-change="getTotal()">
                             <option value="">View All</option>
                             <option ng-repeat="name in metricsList" value="{{ name }}"
                                     ng-selected="{{ name == metricSelected }}">{{ name  | uppercase }}</option>
@@ -63,6 +64,19 @@
 
                 </div>
 
+            </div>
+            <div class="pull-right col-md-6 mB-10">
+                <div class="text-info text-right" ng-show="(regionsList.length)">
+                    <h4 class="">Used : {{ totalUsed }} Total: {{ total }}</h4>
+
+                    <div class="progress metric col-md-10" style="padding: 0!important;margin-bottom: 0px;">
+                        <div ng-class="getUsage(totalUsed,total,metric)"
+                             role="progressbar" ng-style="{ 'width' : metric.width}">
+
+                        </div>
+
+                    </div>{{ metric.usage_percent }}%
+                </div>
             </div>
 
             <hr class="clear" ng-show="regionsList.length">

@@ -16,7 +16,6 @@ import json
 
 mod = Blueprint('quota', __name__, url_prefix='/quota')
 
-
 '''
     QUOTA PAGE LANDING PAGE
 '''
@@ -25,8 +24,6 @@ mod = Blueprint('quota', __name__, url_prefix='/quota')
 def quota():
     url = 'quota/index.html'
     return render_template(url, title="Cloud Admin Tool")
-
-
 
 
 '''
@@ -41,21 +38,25 @@ def get_regions_list(project):
     data = dict(data=[], status=200)
     project_list_local = dict()
 
-    cost_center_list = get_center_list(False)
-    for project_info in cost_center_list:
-        project_list_local[project_info['project_id']] = project_info['project_name']
+    try:
 
-    for project_id in project_list_local:
-        if project_list_local[project_id] == project:
-            if 'ID' in project_id:
-                project = project_id.split('-')[1]
-            else:
-                log.info('No ID')
-                log.info(project_id)
-                project = ''
+        cost_center_list = get_center_list(False)
+        for project_info in cost_center_list:
+            project_list_local[project_info['project_id']] = project_info['project_name']
 
+        for project_id in project_list_local:
+            if project_list_local[project_id] == project:
+                if 'ID' in project_id:
+                    project = project_id.split('-')[1]
+                else:
+                    log.info('No ID')
+                    log.info(project_id)
+                    project = ''
 
-    data = regions_list(project)
+        data = regions_list(project)
+
+    except Exception as e:
+        data['status'] = 500
 
     resp = Response(response=json.dumps(data['data']),
                     status=data['status'],
