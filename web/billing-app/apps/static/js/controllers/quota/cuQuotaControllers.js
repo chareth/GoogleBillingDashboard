@@ -189,28 +189,33 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
     $scope.getQuota = function (project, type) {
       UsageCost.getQuota(project).then(function (value) {
         $scope.loading = false;
-        $scope.regionsList = value;
+        $log.debug($scope.regionsList);
+        $scope.regionsList = $scope.regionsList.concat(value);
+        $log.debug($scope.regionsList);
+
         $scope.getUniqueLists();
         $scope.getTotal();
       }, function (reason) {
         if (typeof(type) != 'undefined' && type == 'all') {
           $scope.failedList += project + ' , ';
-          var msg = '<div class="panel-body">Failed projects are : <b> ' + $scope.failedList +
-            '</b></div>';
+          var msg = '<div class="panel-body region_error"><span>Failed projects are : <b> ' + $scope.failedList +
+            '</b> </span></div>';
+          //$scope.fail = true;
+          $scope.loading = false;
+          $scope.class_name = 'red';
+          //$scope.message = $sce.trustAsHtml(msg);
+
+
+        } else {
+          var msg = (reason.data && reason.data.message) ? reason.data.message : CU.error_msg;
+          $log.error('Reason for Failure ---', msg);
           $scope.fail = true;
           $scope.loading = false;
           $scope.class_name = 'red';
-          $scope.message = $sce.trustAsHtml(msg);
+          $('#container').html('');
+          $scope.message = $sce.trustAsHtml('Reason for Failure ---' + msg);
 
         }
-
-        var msg = (reason.data && reason.data.message) ? reason.data.message : CU.error_msg;
-        $log.error('Reason for Failure ---', msg);
-        $scope.fail = true;
-        $scope.loading = false;
-        $scope.class_name = 'red';
-        $('#container').html('');
-        $scope.message = $sce.trustAsHtml('Reason for Failure ---' + msg);
 
 
       }, function (update) {
@@ -222,7 +227,10 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
      */
 
     $scope.getTotal = function getTotal() {
-     // if ($scope.metricSelected == 'CPUS') {
+
+      // if ($scope.metricSelected == 'CPUS') {
+      if ($scope.metricSelected != 'all') {
+        $scope.hideTotal = false;
         $scope.queryData = [];
         $scope.total = 0;
         $scope.totalUsed = 0;
@@ -244,6 +252,10 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
           total: $scope.total,
           totalUsed: $scope.totalUsed
         };
+      }else{
+        $scope.hideTotal = true;
+      }
+
 
       //}
 

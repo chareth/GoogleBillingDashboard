@@ -56,7 +56,7 @@
 
                     <div class="col-md-8 mB-10">
                         <select class="form-control" ng-model="metricSelected" ng-change="getTotal()">
-                            <option value="">View All</option>
+                            <option value="all">View All</option>
                             <option ng-repeat="name in metricsList" value="{{ name }}"
                                     ng-selected="{{ name == metricSelected }}">{{ name  | uppercase }}</option>
                         </select>
@@ -66,8 +66,8 @@
 
             </div>
             <div class="pull-right col-md-6 mB-10">
-                <div class="text-info text-right" ng-show="(regionsList.length)">
-                    <h4 class="">Used : {{ totalUsed }} Total: {{ total }}</h4>
+                <div class="text-info text-right" ng-show="(regionsList.length && !hideTotal)">
+                    <h4 class="">Used : {{ totalUsed }}</h4>
 
                     <div class="progress metric col-md-10" style="padding: 0!important;margin-bottom: 0px;">
                         <div ng-class="getUsage(totalUsed,total,metric)"
@@ -75,7 +75,8 @@
 
                         </div>
 
-                    </div>{{ metric.usage_percent }}%
+                    </div>
+                    <span title="Used/Limit: {{ totalUsed }}/ {{ total }}">{{ metric.usage_percent }}%</span>
                 </div>
             </div>
 
