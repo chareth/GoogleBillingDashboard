@@ -83,7 +83,12 @@ Landing page  :
    **/billing/loadData**  
    Once logged in to update projects :   
    **/billing/projects**  
-   There is a login button that will control who can add project into info into the 'Project' table. By default only 'test' user  and password. You can update the users logic in login/views.py
+   There is a login button that will control who can add project into info into the 'Project' table. By default only 'test' user  and password. You can update the users logic in login/views.py.  
+   To see the CPU and other metrics across all projects and cost centers use :  
+   **/quota/**   
+   To use the API call for a given project:  
+   **/quota/<project-name>**  
+   
 
 ## License
 Open source under Apache License v2.0 (http://www.apache.org/licenses/LICENSE-2.0)

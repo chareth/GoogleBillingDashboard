@@ -55,7 +55,6 @@
 
                     <div class="col-md-8 mB-10">
                         <select class="form-control" ng-model="metricSelected" ng-change="getTotal()">
-                            <option value="all">View All</option>
                             <option ng-repeat="name in metricsList" value="{{ name }}"
                                     ng-selected="{{ name == metricSelected }}">{{ name  | uppercase }}</option>
                         </select>
@@ -67,7 +66,7 @@
             <div class="pull-right col-md-6 mB-10">
                 <div class="text-info text-right" ng-show="(regionsList.length && !hideTotal)">
                     <h4 class="">
-                        Used : {{ totalUsed }}
+                       {{ metricSelected }} Used : {{ totalUsed }}
                         <i class="fa fa-spin fa-spinner" ng-show="loading"> </i>
                     </h4>
 
@@ -87,7 +86,10 @@
                 <div class="table-responsive">
                     <table class="table table-bordered table-stripped">
                         <thead>
-                        <th class="text-center" width="30%">Resource</th>
+                        <th class="text-center" width="30%">
+                            Resource<br>
+                            <span>(status)(project)(region)</span>
+                        </th>
                         <th class="text-center" width="50%">Percent used</th>
                         <th class="text-center" width="20%">Use</th>
                         </thead>
@@ -95,7 +97,12 @@
                         <tr ng-repeat="metrics in item.quotas | filter : metricSelected ">
                             <td>
                                 <i ng-class="regionStatus(item.status)"></i>
-                                <span>{{ metrics.metric }} ({{ item.name }})</span>
+                                <strong class="">({{ item.project }})</strong>
+
+                                <span>
+                                    ({{ item.name }})
+                                </span>
+
                             </td>
                             <td class="text-center">
                                 <div class="progress metric col-md-10" style="padding: 0!important;margin-bottom: 0px;">

@@ -167,9 +167,11 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
       $scope.failedList = '';
       if ($scope.projectSelected == 'all') {
         $.each($scope.projectList, function (key, value) {
+          $scope.currentProject = value;
           $scope.getQuota(value, 'all');
         });
       } else {
+        $scope.currentProject = '';
         $scope.getQuota($scope.projectSelected);
       }
 
@@ -185,8 +187,8 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
         $log.debug($scope.regionsList);
         $scope.loading = $scope.getStatus();
         $scope.regionsList = $scope.regionsList.concat(value);
-        $log.debug($scope.regionsList);
-        $scope.getUniqueLists();
+
+        $scope.getUniqueLists(project);
         $scope.getTotal();
       }, function (reason) {
         if (typeof(type) != 'undefined' && type == 'all') {
@@ -236,7 +238,6 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
         $scope.total = 0;
         $scope.totalUsed = 0;
         var region = $filter('filter')($scope.regionList, $scope.regionSelected);
-        $log.info(region);
         $.each($scope.regionsList, function (key, item) {
           if (region.indexOf(item['name']) != -1) {
             $scope.queryData.push($filter('filter')(item['quotas'], $scope.metricSelected));
@@ -247,14 +248,13 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
           $scope.total += parseInt(value[0].limit);
           $scope.totalUsed += parseInt(value[0].usage);
         });
-        $log.info($scope.total);
-        $log.info($scope.totalUsed);
         $scope.metric = {
           total: $scope.total,
           totalUsed: $scope.totalUsed
         };
       } else {
         $scope.hideTotal = true;
+
       }
 
 
@@ -264,14 +264,24 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
     /**
      * get unique region list and metrics list
      */
-    $scope.getUniqueLists = function getUniqueLists() {
+    $scope.getUniqueLists = function getUniqueLists(project) {
+
+      $log.debug('UNIQUE');
+      $log.debug(project);
 
       angular.forEach($scope.regionsList, function (key, val) {
+        if (project) {
+          if (!key.hasOwnProperty('project')) {
+            key['project'] = project;
+          }
+        }
         if ($scope.regionList.indexOf(key['name']) == -1) {
+
           $scope.regionList.push(key['name']);
         }
         angular.forEach(key['quotas'], function (k, value) {
           if ($scope.metricsList.indexOf(k['metric']) == -1) {
+
             $scope.metricsList.push(k['metric']);
           }
         });
