@@ -8,8 +8,8 @@
 var cuQuotaControllers = angular.module('cuQuotaControllers', []);
 
 cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce', 'Quota', '$location',
-  'UsageCost', '$filter',
-  function ($scope, $log, $sce, Quota, $location, UsageCost, $filter) {
+  'UsageCost', '$filter', '$http',
+  function ($scope, $log, $sce, Quota, $location, UsageCost, $filter, $http) {
 
     var init = function init() {
       $log.info('----- CPU Controller INIT --- ');
@@ -17,7 +17,7 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
       $scope.centerSelected = 'all';
       $scope.regionSelected = '';
       $scope.metricSelected = 'CPUS';
-      $scope.projectSelected = 'one';
+      $scope.projectSelected = 'all';
 
       $scope.costCenterList = [];
       $scope.projectList = [];
@@ -38,19 +38,19 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
      */
     $scope.getURLParams = function getURLParams() {
       var params = $location.search();
-      //if params not found then first time get the center list and set it to one
+      //if params not found then first time get the center list and set it to all
       if (!params.cost_center) {
         $scope.centerSelected = 'all';
-        $scope.projectSelected = 'one';
-        $location.search('cost_center', $scope.centerSelected);
-        $location.search('project', null);
+        $scope.projectSelected = 'all';
       } else if (!params.project) {
-        $scope.projectSelected = 'one';
+        $scope.projectSelected = 'all';
         $scope.centerSelected = params.cost_center;
       } else {
         $scope.centerSelected = params.cost_center;
         $scope.projectSelected = params.project;
       }
+      $location.search('cost_center', $scope.centerSelected);
+      $location.search('project', $scope.projectSelected);
       getCostCenterList();
     };
     /* on location change call filter change with the updated params
@@ -66,25 +66,28 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
         $log.info('Project Not There');
 
         $scope.centerSelected = params.cost_center;
-        $scope.projectSelected = 'one';
+        $scope.projectSelected = 'all';
         $scope.setDefaults($scope.projectSelected);
         if ($scope.costCenterList.length == 0) {
           getCostCenterList();
         }
-      } else if (params.cost_center && params.project != 'one') {
+      } else if (params.cost_center && params.project != 'all') {
         $scope.centerSelected = params.cost_center;
         $scope.projectSelected = params.project;
         $scope.setDefaults($scope.projectSelected);
       }
-      $scope.getProjectList();
+
+      if ($scope.projectList.length != 0) {
+        $scope.getProjectList();
+      }
     });
 
     $scope.updateURLParams = function updateURLParams(center, project) {
 
-      if (!project || project == 'one') {
+      if (!project || project == 'all') {
         $location.search('cost_center', center);
-        $location.search('project', null);
-        $scope.projectSelected = 'one';
+        $location.search('project', 'all');
+        $scope.projectSelected = 'all';
         $scope.fail = false;
         //$scope.getProjectList();
       } else {
@@ -95,19 +98,11 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
 
     };
     $scope.setDefaults = function setDefaults(project) {
-      if (project == 'one') {
-        $scope.projectList = [];
-        $scope.regionsList = [];
-        $scope.metricsList = [];
-        $scope.regionList = [];
-      } else {
-        $scope.projectSelected = project;
-        $scope.regionsList = [];
-        $scope.metricsList = [];
-        $scope.regionList = [];
 
-      }
-
+      $scope.projectSelected = project;
+      $scope.regionsList = [];
+      $scope.metricsList = [];
+      $scope.regionList = [];
       $scope.loading = true;
       $scope.fail = false;
 
@@ -148,9 +143,7 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
         $log.info(value);
         $scope.loading = false;
         $scope.projectList = value;
-        if ($scope.projectSelected != 'one') {
-          $scope.getCPUQuota();
-        }
+        $scope.getCPUQuota();
 
       }, function (reason) {
         var msg = (reason.data && reason.data.message) ? reason.data.message : CU.error_msg;
@@ -187,30 +180,32 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
      *
      */
     $scope.getQuota = function (project, type) {
+
       UsageCost.getQuota(project).then(function (value) {
-        $scope.loading = false;
         $log.debug($scope.regionsList);
+        $scope.loading = $scope.getStatus();
         $scope.regionsList = $scope.regionsList.concat(value);
         $log.debug($scope.regionsList);
-
         $scope.getUniqueLists();
         $scope.getTotal();
       }, function (reason) {
         if (typeof(type) != 'undefined' && type == 'all') {
+          $scope.fail = true;
+          $scope.class_name = 'red';
           $scope.failedList += project + ' , ';
+          $scope.loading = $scope.getStatus();
+
           var msg = '<div class="panel-body region_error"><span>Failed projects are : <b> ' + $scope.failedList +
             '</b> </span></div>';
-          //$scope.fail = true;
-          $scope.loading = false;
-          $scope.class_name = 'red';
-          //$scope.message = $sce.trustAsHtml(msg);
 
-
+          // if ($scope.regionsList.length == 0) {
+          $scope.message = $sce.trustAsHtml(msg);
+          //}
         } else {
           var msg = (reason.data && reason.data.message) ? reason.data.message : CU.error_msg;
           $log.error('Reason for Failure ---', msg);
           $scope.fail = true;
-          $scope.loading = false;
+          $scope.loading = $scope.getStatus();
           $scope.class_name = 'red';
           $('#container').html('');
           $scope.message = $sce.trustAsHtml('Reason for Failure ---' + msg);
@@ -221,6 +216,12 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
       }, function (update) {
         $log.info('Update  ---', update);
       });
+    };
+    $scope.getStatus = function () {
+      if (!$http.pendingRequests.length > 0) {
+        $scope.failedList = $scope.failedList.slice(0, $scope.failedList.lastIndexOf(","));
+      }
+      return $http.pendingRequests.length > 0;
     };
     /**
      * get total cpu usage when metricSelected == CPUS
@@ -252,13 +253,12 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
           total: $scope.total,
           totalUsed: $scope.totalUsed
         };
-      }else{
+      } else {
         $scope.hideTotal = true;
       }
 
 
       //}
-
     };
 
     /**
@@ -291,7 +291,7 @@ cuQuotaControllers.controller('CPUQuotaListController', ['$scope', '$log', '$sce
      * get usage %
      */
     $scope.getUsage = function getUsage(usage, limit, metric) {
-      metric.usage_percent = parseFloat(((usage / limit) * 100).toFixed(4));
+      metric.usage_percent = parseFloat(((usage / limit) * 100).toFixed(2));
       metric.width = metric.usage_percent + '%';
       if (metric.usage_percent <= 50) {
         return 'progress-bar progress-bar-success';
