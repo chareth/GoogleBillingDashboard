@@ -59,8 +59,8 @@ cd ${DEPLOY_HOME}
 echo "Docker-compose Build"
 docker-compose build
 
-echo "Docker-compose up"
-docker-compose up -d
+#echo "Docker-compose up"
+#docker-compose up -d
 
 
 

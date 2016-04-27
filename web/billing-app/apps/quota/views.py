@@ -9,7 +9,7 @@ __doc__ = "Billing View API/HTML layer"
 from flask import Blueprint, request
 from flask.templating import render_template
 from flask.wrappers import Response
-from apps.config.apps_config import log
+from apps.config.apps_config import log, QUOTA_VIEW
 
 import json
 
@@ -23,7 +23,7 @@ mod = Blueprint('quota', __name__, url_prefix='/quota')
 @mod.route('/')
 def quota():
     url = 'quota/index.html'
-    return render_template(url, title="Cloud Admin Tool")
+    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
 
 
 '''

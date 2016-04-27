@@ -1,33 +1,38 @@
-
-
 from flask.wrappers import Response
 import json
 import logging
-from flask import Blueprint,request
+from flask import Blueprint, request
 from flask.templating import render_template
+from apps.config.apps_config import QUOTA_VIEW
 
 mod = Blueprint('login', __name__, url_prefix='/')
 
 
 @mod.route('/')
 def index():
-    url ='index.html'
-    return render_template(url,title="Cloud Admin Tool")
+    url = 'index.html'
+    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+
+
 '''
             LOGIN API
 '''
+
+
 @mod.route('login', methods=['POST'])
 def user_login():
     log.info('In Login Call')
     username = request.json['username']
     password = request.json['password']
-    return  login(username,password)
+    return login(username, password)
+
 
 @mod.route('logout', methods=['POST'])
 def user_logout():
     log.info('In Logout Call')
     username = request.json['username']
-    return  logout(username)
+    return logout(username)
+
 
 log = logging.getLogger()
 
@@ -55,6 +60,7 @@ def login(username, password):
                     status=200,
                     mimetype="application/json")
     return resp
+
 
 def logout(username):
     data = dict()

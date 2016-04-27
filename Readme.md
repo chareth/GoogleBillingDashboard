@@ -44,7 +44,12 @@ On a mac simply run:
 1. Modify the **common.env** with the corresponding values  
   * SCHEDULER_HOUR=0-23
   * SCHEDULER_MIN=0-59
-  
+
+### View Quota link Setting
+1. Modify the **common.env** with the corresponding values
+  * QUOTA_VIEW=True or False  
+When set to **True** it will have the link to view the Metrics Usage for all projects else it is hidden in the navbar. In order to have the data from other projects, the current project in which the code is deployed should have access to read all the projects and this is possible by adding the service account of this project into the other projects(https://cloud.google.com/docs/permissions-overview).
+
 ### For local developlement 
   If running locally add the path to the JSON file for the service account in apps_config.py -- 'GOOGLE_APPLICATION_CREDENTIALS' and place the file under web/billing-app/.  
 
