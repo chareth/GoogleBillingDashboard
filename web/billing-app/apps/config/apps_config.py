@@ -37,6 +37,7 @@ Base.query = db_session.query_property()
 
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
 ARCHIVE_BUCKET_NAME = os.environ.get('ARCHIVE_BUCKET_NAME')
+QUOTA_VIEW = os.environ.get('QUOTA_VIEW')
 
 '''
 

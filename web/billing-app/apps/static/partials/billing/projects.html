@@ -217,9 +217,9 @@
 
 
                 <a ng-show="project.project_id !='Not Available'"
-                   ng-href="https://console.developers.google.com/project/{{ project.project_id | split:'-':1}}"
+                   ng-href="https://console.developers.google.com/project/{{getProjectId(project.project_id)}}"
                    target="_blank">
-                    {{ project.project_id | split:'-':1}}</a>
+                    {{ getProjectId(project.project_id)}}</a>
                                 <span ng-show="project.project_id =='Not Available'">
                                     {{ project.project_id }}</span>
             </td>

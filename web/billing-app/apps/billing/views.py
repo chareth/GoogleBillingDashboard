@@ -19,17 +19,15 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_week_center, get_costs_per_resource_per_project_per_day_week, \
     get_costs_per_resource_all_project_per_day_week, get_costs_per_center_year_quarter, \
     get_costs_per_resource_quarter_center, get_costs_per_resource_all_project_per_day_quarter, \
-    get_costs_per_resource_per_project_per_day_quarter
+    get_costs_per_resource_per_project_per_day_quarter, project_list_per_center
 
-from apps.config.apps_config import log
+from apps.config.apps_config import log, QUOTA_VIEW
 from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial
 
 import datetime
 import os
 
-
 mod = Blueprint('billing', __name__, url_prefix='/billing')
-
 
 '''
     BILLING PAGE LANDING PAGE , COST CENTER PAGE AND API's
@@ -38,21 +36,21 @@ mod = Blueprint('billing', __name__, url_prefix='/billing')
 @mod.route('/')
 def billing():
     url = 'billing/index.html'
-    return render_template(url, title="Cloud Admin Tool")
+    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
 
 
 # route handles for /admin and /admin/page
 @mod.route('/cost_center/')
 def cost_center_data():
     url = 'billing/cost_center_data.html'
-    return render_template(url, title="Cloud Admin Tool")
+    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
 
 
 # route handles for /admin and /admin/page
 @mod.route('/projects')
 def projects_cost_center():
     url = 'billing/projects.html'
-    return render_template(url, title="Cloud Admin Tool")
+    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
 
 
 # route handles for creating table for first time
@@ -88,6 +86,7 @@ def load_data():
 
     return resp
 
+
 def init_scheduler():
     set_scheduler_initial()
 
@@ -101,7 +100,14 @@ def init_scheduler():
 
 @mod.route('/usage/projects', methods=['GET'])
 def get_project_list():
-    data = get_project_list_data()
+    data = dict(data=[])
+
+    cost_center = request.args.get('cost_center')
+
+    if cost_center == 'all':
+        data = get_project_list_data()
+    else:
+        data = project_list_per_center(cost_center)
 
     resp = Response(response=json.dumps(data['data']),
                     status=data['status'],

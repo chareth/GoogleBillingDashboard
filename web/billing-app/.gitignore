@@ -7,13 +7,7 @@ apps/static/assets/css/app.min.css
 apps/static/assets/css/vendor.css
 apps/static/assets/css/vendor.min.css
 apps/static/assets/js/auditing.js
-apps/static/assets/js/auditing.min.js
-apps/static/assets/js/billing.js
-apps/static/assets/js/billing.min.js
-apps/static/assets/js/menu_login.js
-apps/static/assets/js/menu_login.min.js
-apps/static/assets/js/self_service.js
-apps/static/assets/js/self_service.min.js
+apps/static/assets/js/*.js
 apps/static/assets/css/app.css
 *.pyc
 mysql-connector-java-5.1.37/CHANGES

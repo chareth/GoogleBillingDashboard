@@ -1,0 +1,139 @@
+<div class="col-md-12" ng-controller="CPUQuotaListController">
+
+    <div class="row-fuild">
+        <div class="panel panel-default">
+            <h2 class="text-center">
+                 <span class="fa-stack fa-lg">
+              <i class="fa fa-square-o fa-stack-2x text-success"></i>
+              <i class="fa fa-database fa-stack-1x text-success"></i>
+            </span>
+                CPU Quota
+            </h2>
+            <hr class="clear">
+            <div class="panel-body filters">
+
+                <div class="col-md-6">
+                    <label class="col-md-4 text-right" style="padding: 5px;">Select a Cost Center :</label>
+
+                    <div class="col-md-8">
+                        <select class="form-control" ng-model="centerSelected"
+                                ng-change="updateURLParams(centerSelected)">
+                            <option value="all">All</option>
+                            <option ng-repeat="center in costCenterList" value="{{ center }}"
+                                    ng-selected="{{ center == centerSelected }}">{{ center | uppercase }}</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="col-md-6" ng-show="projectList.length">
+                    <label class="col-md-4 text-right" style="padding: 5px;">Select a Project :</label>
+
+                    <div class="col-md-8 mB-10">
+                        <select class="form-control" ng-model="projectSelected"
+                                ng-change="updateURLParams(centerSelected,projectSelected)">
+                            <option value="all">All</option>
+                            <option ng-repeat="name in projectList" value="{{ name }}"
+                                    ng-selected="{{ name == projectSelected }}">{{ name  | uppercase }}</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="col-md-6 clear" ng-show="regionList.length">
+                    <label class="col-md-4 text-right" style="padding: 5px;"> Filter By Region:</label>
+
+                    <div class="col-md-8">
+                        <select class="form-control" ng-model="regionSelected" ng-change="getTotal()">
+                            <option value="">View All</option>
+                            <option ng-repeat="name in regionList" value="{{ name }}"
+                                    ng-selected="{{ name == regionSelected }}">{{ name  | uppercase }}</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="col-md-6" ng-show="metricsList.length">
+                    <label class="col-md-4 text-right" style="padding: 5px;"> Filter By Metric:</label>
+
+                    <div class="col-md-8 mB-10">
+                        <select class="form-control" ng-model="metricSelected" ng-change="getTotal()">
+                            <option ng-repeat="name in metricsList" value="{{ name }}"
+                                    ng-selected="{{ name == metricSelected }}">{{ name  | uppercase }}</option>
+                        </select>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="pull-right col-md-6 mB-10">
+                <div class="text-info text-right" ng-show="(regionsList.length && !hideTotal)">
+                    <h4 class="">
+                       {{ metricSelected }} Used : {{ totalUsed }}
+                        <i class="fa fa-spin fa-spinner" ng-show="loading"> </i>
+                    </h4>
+
+                    <div class="progress metric col-md-10" style="padding: 0!important;margin-bottom: 0px;">
+                        <div ng-class="getUsage(totalUsed,total,metric)"
+                             role="progressbar" ng-style="{ 'width' : metric.width}">
+
+                        </div>
+
+                    </div>
+                    <span title="Used/Limit: {{ totalUsed }}/ {{ total }}">{{ metric.usage_percent }}%</span>
+                </div>
+            </div>
+
+            <hr class="clear" ng-show="regionsList.length">
+            <div class="panel-body container" ng-show="regionsList.length">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-stripped">
+                        <thead>
+                        <th class="text-center" width="30%">
+                            Resource<br>
+                            <span>(status)(project)(region)</span>
+                        </th>
+                        <th class="text-center" width="50%">Percent used</th>
+                        <th class="text-center" width="20%">Use</th>
+                        </thead>
+                        <tbody ng-repeat="item in regionsList | filter : regionSelected ">
+                        <tr ng-repeat="metrics in item.quotas | filter : metricSelected ">
+                            <td>
+                                <i ng-class="regionStatus(item.status)"></i>
+                                <strong class="">({{ item.project }})</strong>
+
+                                <span>
+                                    ({{ item.name }})
+                                </span>
+
+                            </td>
+                            <td class="text-center">
+                                <div class="progress metric col-md-10" style="padding: 0!important;margin-bottom: 0px;">
+                                    <div ng-class="getUsage(metrics.usage,metrics.limit,metrics)"
+                                         role="progressbar" ng-style="{ 'width' : metrics.width}">
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-md-2" style="padding: 0 0 0 5px!important;">
+                                    {{ metrics.usage_percent }}%
+                                </div>
+                            </td>
+                            <td class="text-left">
+                                {{ metrics.usage }} of {{ metrics.limit }}
+                            </td>
+
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div ng-include="'/static/partials/loading.html'"></div>
+
+            <!-- panel-body main -->
+
+        </div>
+        <!-- panel -->
+    </div>
+    <!-- end of row-->
+</div>

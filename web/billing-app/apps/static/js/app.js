@@ -26,7 +26,20 @@ if (document.URL.indexOf('billing') != -1) {
         'cuFilters'
     ]);
 
-}  else {
+} else if (document.URL.indexOf('quota') != -1) {
+    var cuApp = angular.module('cuApp', [
+        'ngRoute',
+        'ngCookies',
+        'ui.bootstrap',
+        'cuControllers',
+        'loginService',
+        'cuQuotaControllers',
+        'quotaService',
+        'billingService',
+        'cuFilters'
+    ]);
+
+} else {
     var cuApp = angular.module('cuApp', [
         'ngRoute',
         'ngCookies',

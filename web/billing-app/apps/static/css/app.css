@@ -11,7 +11,7 @@
     clear: both;
 }
 
-i.fa.fa-sort-up, i.fa.fa-sort-down, i.fa.fa-times,[data-id=login],[data-id=logout]{
+i.fa.fa-sort-up, i.fa.fa-sort-down, i.fa.fa-times, [data-id=login], [data-id=logout] {
     cursor: pointer;
 }
 
@@ -78,6 +78,14 @@ select option {
     border-top-right-radius: 0;
 }
 
-.main{
+.main {
     margin-top: 50px;
+}
+
+.main_page.panel-body {
+    min-height: 115px;
+}
+
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
+    vertical-align: middle!important;
 }
