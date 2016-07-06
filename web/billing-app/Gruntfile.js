@@ -22,7 +22,7 @@ module.exports = function (grunt) {
             },
             menu_login_js: {
                 src: ['<%= static_js_dir %>/controllers/cuControllers.js', '<%= static_js_dir %>/controllers/cuLogin*.js',
-                    '<%= static_js_dir %>/services/login*'],
+                    '<%= static_js_dir %>/services/login*','<%= static_js_dir %>/controllers/exportImportController.js'],
                 dest: '<%= assets_js_dir %>/menu_login.js'
             },
             billing_js: {

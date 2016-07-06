@@ -1,0 +1,93 @@
+<div class="col-md-12" ng-controller="DirectorController">
+
+    <div class="row-fuild">
+        <div class="panel panel-default">
+            <h2 class="text-center">
+                 <span class="fa-stack fa-lg">
+              <i class="fa fa-square-o fa-stack-2x text-success"></i>
+              <i class="fa fa-dollar fa-stack-1x text-success"></i>
+            </span>
+                Billing Info at Director Level
+
+            </h2>
+            <hr class="clear">
+            <div class="form-group  col-md-6 ">
+
+                <div class="col-md-6">
+
+                    <p class="input-group">
+                        <input name="endDate" type="text" class="form-control" uib-datepicker-popup
+                               ng-model="dt" ng-change="getBillingData()"
+                               is-open="popup2.opened" datepicker-options="{minMode: 'month',datepickerMode: 'month'}"
+                               close-text="Close" placeholder=""/>
+                              <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="open2()"><i
+                                        class="fa fa-calendar"></i></button>
+                              </span>
+                    </p>
+
+                </div>
+                <div class="col-md-6">
+                    <a ng-controller="exportController" id='export' class="btn btn-success pull-right"
+                       ng-click="export(costCenterList,'DirectorLevelBilling-'+monthSelected )"
+                       ng-disabled="!costCenterList.length">Export Table to
+                        Excel
+                    </a>
+
+                </div>
+
+
+            </div>
+            <div class="col-md-6" style="margin-top: -27px">
+                <h3 class="pull-right add-padding"><a ng-href="{{ centerURL('all') }}">Overall
+                    Cost</a>:${{ totalCost | number:2}} </h3>
+
+            </div>
+
+            <hr class="clear">
+            <div class="panel-body">
+                <div class="col-md-2"></div>
+                <div class="table-responsive col-md-8">
+                    <table class="table table-stripped table-bordered" ng-show="costCenterList.length">
+                        <thead>
+                        <th class="bg-warning text-center">Cost Center</th>
+                        <th class="bg-warning text-center">Director</th>
+                        <th class="bg-warning text-center">Cost for Selected Month</th>
+                        <th class="bg-warning text-center">Percentage of Total</th>
+                        <th class="bg-warning text-center">Support Amount</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="cost_center in costCenterList">
+                            <td class="text-info cost_center">
+                                <a ng-href="{{ centerURL(cost_center.id) }}">{{ cost_center.id }}</a>
+                            </td>
+                            <td class="text-info cost_center">
+                                {{ cost_center.name }}
+                            </td>
+                            <td class="text-info">
+                                ${{ cost_center.cost | number:2 }}
+                            </td>
+                            <td class="text-info">
+                                {{ cost_center.percentUsed | number:2 }}%
+                            </td>
+                            <td class="text-info">
+                                ${{ cost_center.supportUsed | number:2 }}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-2"></div>
+            </div>
+            <div class="clear panel-body bg-info text-center" ng-hide="costCenterList.length || loading">
+                No data available for current month yet, try again later.
+            </div>
+
+            <div ng-include="'/static/partials/loading.html'"></div>
+            <!-- panel-body main -->
+
+        </div>
+        <!-- panel -->
+    </div>
+    <!-- end of row-->
+</div>

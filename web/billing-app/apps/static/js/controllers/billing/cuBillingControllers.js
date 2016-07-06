@@ -602,51 +602,7 @@ cuBillingControllers.controller('UsageController', ['$scope', '$log', '$sce', 'U
             return ($scope.viewSelected == 'day');
         };
 
-        $scope.export = function () {
-            var json = $scope.costData;
-            var csv = $scope.JSON2CSV(json);
 
-            var file_name = $scope.costCenterSelected + '_' + $scope.spanSelected + '_' + $scope.spanValueSelected + '.csv';
-            //window.open("data:text/csv;charset=utf-8;filename=filename.csv," + escape(csv))
-            $('a#export').attr('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
-            $('a#export').attr('download', file_name);
-        };
-        $scope.JSON2CSV = function (objArray) {
-            var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-
-            var str = '';
-            var line = '';
-            // get the header info, we need only month,cost,usage and not the angular stuff
-            for (var index in array[0]) {
-                if (index == 'name' || index == 'cost' || index == 'usage') {
-                    var header = (index == 'name') ? 'TYPE' : index.toUpperCase();
-                    line += header + ',';
-                }
-            }
-            line = line.slice(0, -1);
-            str += line + '\r\n';
-
-
-            for (var i = 0; i < array.length; i++) {
-                var line = '';
-
-                for (var index in array[i]) {
-                    if (index == 'name' || index == 'cost' || index == 'usage') {
-                        var data = (index == 'cost') ? ('$ ' + array[i][index]) :
-                            (index == 'usage') ? (  $scope.format(array[i][index]) + ' ' + array[i]['unit']) :
-                                array[i][index];
-                        line += data + ',';
-                    }
-                }
-
-
-                line = line.slice(0, -1);
-                str += line + '\r\n';
-            }
-            return str;
-
-
-        };
         $scope.monthName = function (month) {
             $.each($scope.months, function (k, value) {
                 var name;

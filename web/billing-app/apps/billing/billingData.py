@@ -556,8 +556,6 @@ def get_costs_per_cost_month(year, value_to_match, output_type):
     month_data = []
     status = 200
     try:
-
-
         cost_center_list = set_global_cost_center_list()
         new_dict = dict()
         projects_list = []
@@ -577,17 +575,20 @@ def get_costs_per_cost_month(year, value_to_match, output_type):
                 for project_info in cost_center_list:
                     cost_center = str(project_info['cost_center'])
                     project_id = str(project_info['project_id'])
+                    director = str(project_info['director'])
 
                     if project == project_id:
                         new_dict[cost_center] = new_dict.get(cost_center, {})
+                        new_dict[cost_center]['director'] = director
                         new_dict[cost_center]['cost'] = new_dict[cost_center].get('cost', 0.0)
                         new_dict[cost_center]['project'] = new_dict[cost_center].get('project', [])
                         new_dict[cost_center]['project'].append(str(project))
                         new_dict[cost_center]['cost'] += cost
 
             for key, value in new_dict.items():
-                each_month = dict(name=key, cost=value['cost'])
+                each_month = dict(name=value['director'], cost=value['cost'], id=key)
                 month_data.append(each_month)
+
         month_json['usage_data'] = month_data
 
         month_json = {

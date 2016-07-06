@@ -16,7 +16,7 @@ from apiclient import discovery
 from oauth2client.client import GoogleCredentials
 from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session
 import datetime
-from apps.billing.models import Usage
+from apps.billing.models import Billing
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
@@ -394,7 +394,7 @@ def insert_usage_data(data_list, filename, service):
 def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
     done = False
     try:
-        usage = Usage(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
+        usage = Billing(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
         db_session.add(usage)
         db_session.commit()
         done = True
@@ -402,7 +402,7 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
         # log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
         # log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
         db_session.rollback()
-        usage = Usage.query.filter_by(project_id=project_id, usage_date=usage_date, resource_type=resource_type).first()
+        usage = Billing.query.filter_by(project_id=project_id, usage_date=usage_date, resource_type=resource_type).first()
         usage.cost = cost
         usage.usage_value = usage_value
         usage.measurement_unit = measurement_unit

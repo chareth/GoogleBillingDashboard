@@ -6,8 +6,8 @@ var cuControllers = angular.module('cuControllers', [
 
 /*
  * Controller for tadding active class to the menu*/
-cuControllers.controller('menuBar', ['$scope', '$location' , '$modal', '$cookies', 'Login', '$log', '$routeParams',
-  function ($scope, $location, $modal, $cookies, Login, $log, $routeParams) {
+cuControllers.controller('menuBar', ['$scope', '$location' , '$uibModal', '$cookies', 'Login', '$log', '$routeParams',
+  function ($scope, $location, $uibModal, $cookies, Login, $log, $routeParams) {
     $scope.isActive = function (viewLocation) {
       if ($scope.active == viewLocation.split('/')[1]) {
         return true;
@@ -16,7 +16,7 @@ cuControllers.controller('menuBar', ['$scope', '$location' , '$modal', '$cookies
 
     };
     $scope.modal = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: '/static/partials/login.html',
         controller: 'LoginController',
         size: 'sm',

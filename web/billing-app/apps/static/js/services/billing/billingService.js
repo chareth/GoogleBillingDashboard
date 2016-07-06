@@ -106,7 +106,19 @@ billingService.factory('UsageCost', ['$http', '$timeout', '$q', '$log' , functio
       return deferred.promise;
     },
     getQuota: function (project) {
-      var url = CU.quota_url + project+'?time_stamp=',
+      var url = CU.quota_url + project + '?time_stamp=',
+        deferred = $q.defer();
+      url += Date.now();
+      $log.info(url);
+      $http.get(url).success(function (data) {
+        deferred.resolve(data);
+      }).error(function () {
+        deferred.reject("error");
+      });
+      return deferred.promise;
+    },
+    getSupportCost: function () {
+      var url = CU.billing_url +'support_cost?time_stamp=',
         deferred = $q.defer();
       url += Date.now();
       $log.info(url);

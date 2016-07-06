@@ -52,6 +52,12 @@ def projects_cost_center():
     url = 'billing/projects.html'
     return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
 
+# route handles for /admin and /admin/page
+@mod.route('/director')
+def director_level_billing():
+    url = 'billing/director_billing.html'
+    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+
 
 # route handles for creating table for first time
 @mod.route('/table')
@@ -111,6 +117,22 @@ def get_project_list():
 
     resp = Response(response=json.dumps(data['data']),
                     status=data['status'],
+                    mimetype="application/json")
+    return resp
+
+'''
+
+    API to get the Support cost
+    figure out how to populate this
+'''
+
+
+@mod.route('/usage/support_cost', methods=['GET'])
+def get_support_cost():
+    data = dict(cost=15000)
+
+    resp = Response(response=json.dumps(data),
+                    status=200,
                     mimetype="application/json")
     return resp
 

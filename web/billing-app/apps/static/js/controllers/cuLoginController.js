@@ -4,8 +4,8 @@
 
 var cuLoginController = angular.module('cuLoginController', []);
 
-cuLoginController.controller('LoginController', ['$scope', '$log', '$sce', 'Login', '$modalInstance', '$rootScope', '$cookies',
-    function ($scope, $log, $sce, Login, $modalInstance, $rootScope, $cookies) {
+cuLoginController.controller('LoginController', ['$scope', '$log', '$sce', 'Login', '$uibModalInstance', '$rootScope', '$cookies',
+    function ($scope, $log, $sce, Login, $uibModalInstance, $rootScope, $cookies) {
 
         /* loading img*/
         $scope.msg = false;
@@ -78,7 +78,7 @@ cuLoginController.controller('LoginController', ['$scope', '$log', '$sce', 'Logi
 
         };
         $scope.cancel = function () {
-            $modalInstance.dismiss('cancel');
+            $uibModalInstance.dismiss('cancel');
         };
 
     }]);
