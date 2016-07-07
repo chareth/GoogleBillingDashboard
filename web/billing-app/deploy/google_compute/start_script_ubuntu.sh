@@ -12,6 +12,9 @@ export MYSQL_USER=$(curl --fail -s http://metadata/computeMetadata/v1/instance/a
 export MYSQL_PASS=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/MYSQL_PASS -H "Metadata-Flavor: Google")
 export MYSQL_HOST=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/MYSQL_HOST -H "Metadata-Flavor: Google")
 export MYSQL_DBNAME=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/MYSQL_DBNAME -H "Metadata-Flavor: Google")
+export BUCKET_NAME=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/BUCKET_NAME -H "Metadata-Flavor: Google")
+export ARCHIVE_BUCKET_NAME=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/ARCHIVE_BUCKET_NAME -H "Metadata-Flavor: Google")
+export QUOTA_VIEW=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/QUOTA_VIEW -H "Metadata-Flavor: Google")
 
 echo "Automation user Creation"
 USER='automation'
