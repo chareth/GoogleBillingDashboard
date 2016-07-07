@@ -16,7 +16,7 @@ from apiclient import discovery
 from oauth2client.client import GoogleCredentials
 from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session
 import datetime
-from apps.billing.models import Billing
+from apps.billing.models import Billing, Project
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
@@ -55,7 +55,6 @@ def set_scheduler(hour, min):
 
 
 def get_time(hour, mins):
-
     '''
     Add this if you need to have multiple processes in the same instance
     rand_no = random.randint(1, 10)
@@ -195,9 +194,8 @@ def check_for_lock_file(filename, random_no, service):
 
         log.info('METADATA -- {0} -- {1}'.format(lock_metadata, startTime_metadata))
 
-
         if lock_metadata is not None and startTime_metadata is not None \
-                and startTime_metadata_day == str(today) and startTime_metadata_month == str(thisMonth)\
+                and startTime_metadata_day == str(today) and startTime_metadata_month == str(thisMonth) \
                 and mindiff < 30:
             log.info(' Lock metadata found and is same day')
             locked = True
@@ -317,6 +315,7 @@ def process_file(filename, file_content, service):
 
         '''
         insert_resp = insert_usage_data(data_list, filename, service)
+        insert_project_resp = insert_project__table_data(data_list, filename, service)
 
         log.info('Processing file -- {0} -- ENDING'.format(filename))
 
@@ -367,7 +366,6 @@ def insert_usage_data(data_list, filename, service):
                     cost += float(credit['amount'])
                     # log.info('{0}<---->{1}<----->{2}<------>{3}'.format(usage_date, project_id, credit['amount'], cost))
                     # log.info('cost after -- {0}'.format(cost))
-
             if cost == 0:
                 # log.info('--- COST is 0 --- NOT adding to DB')
                 continue
@@ -391,6 +389,51 @@ def insert_usage_data(data_list, filename, service):
     return usage
 
 
+'''
+    Insert Project info in Project table
+
+'''
+
+
+def insert_project__table_data(data_list, filename, service):
+    project = dict()
+    try:
+        data_count = 0
+        total_count = 0
+        for data in data_list:
+            total_count += 1
+
+            '''
+                update the Project table with project_name with data['projectName']
+                if there else use data['projectId'] if there else add as support
+            '''
+            if 'projectNumber' in data:
+                project_id = 'ID-' + str(data['projectNumber'])
+                if 'projectName' in data:
+                    insert_done = insert_project_data(project_id, data['projectName'])
+                else:
+                    insert_done = insert_project_data(project_id, project_id)
+
+            else:
+                project_id = 'Not Available'
+                insert_done = insert_project_data(project_id, 'support')
+
+            if not insert_done:
+                log.info(data)
+                continue
+            else:
+                data_count += 1
+
+        project = dict(message=' data has been added to db')
+        log.info(
+            'DONE adding {0} items out of {1} for file -- {2} into the db '.format(data_count, total_count, filename))
+    except Exception as e:
+        log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
+        db_session.rollback()
+
+    return project
+
+
 def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
     done = False
     try:
@@ -402,10 +445,31 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
         # log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
         # log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
         db_session.rollback()
-        usage = Billing.query.filter_by(project_id=project_id, usage_date=usage_date, resource_type=resource_type).first()
+        usage = Billing.query.filter_by(project_id=project_id, usage_date=usage_date,
+                                        resource_type=resource_type).first()
         usage.cost = cost
         usage.usage_value = usage_value
         usage.measurement_unit = measurement_unit
+        db_session.commit()
+
+        done = True
+    except Exception as e:
+        log.error(' ------------- ERROR IN ADDING DATA TO THE DB ------------- {0}'.format(e[0]))
+    return done
+
+
+def insert_project_data(project_id, project_name):
+    done = False
+    try:
+        project = Project('', project_id, project_name, '', '', '', '', 0)
+        db_session.add(project)
+        db_session.commit()
+        done = True
+    except IntegrityError as e:
+        log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
+        db_session.rollback()
+        project = Project.query.filter_by(project_id=project_id).first()
+        project.project_name = project_name
         db_session.commit()
 
         done = True
