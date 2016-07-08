@@ -55,6 +55,7 @@
                         <th class="bg-warning text-center">Cost for Selected Month</th>
                         <th class="bg-warning text-center">Percentage of Total</th>
                         <th class="bg-warning text-center">Support Amount</th>
+                        <th class="bg-warning text-center">Total</th>
                         </thead>
                         <tbody>
                         <tr ng-repeat="cost_center in costCenterList">
@@ -72,6 +73,9 @@
                             </td>
                             <td class="text-info">
                                 ${{ cost_center.supportUsed | number:2 }}
+                            </td>
+                            <td class="text-info">
+                                ${{ cost_center.total | number:2 }}
                             </td>
                         </tr>
                         </tbody>

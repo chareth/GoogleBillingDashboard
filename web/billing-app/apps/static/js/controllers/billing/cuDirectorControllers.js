@@ -49,6 +49,7 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
           $.each($scope.costCenterList, function (k, v) {
             v.percentUsed = (v.cost * 100) / $scope.totalCost;
             v.supportUsed = (v.percentUsed * value.cost) / 100;
+            v.total = v.supportUsed + v.cost;
           });
 
 
@@ -87,6 +88,9 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
     $scope.getBillingData = function () {
 
       if ($scope.dt != null) {
+        $scope.costCenterList = [];
+        $scope.loading = true;
+        $scope.totalCost = 0;
         var year_month = $scope.dt.getFullYear().toString().substr(2, 2) + '-' + ($scope.dt.getMonth() + 1);
         $scope.monthSelected = year_month;
         $log.info(year_month);
