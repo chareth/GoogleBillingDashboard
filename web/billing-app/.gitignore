@@ -490,3 +490,5 @@ mysql-connector-java-5.1.36.jar
 billing_json/
 usage_csv/
 *.sql
+
+*.log

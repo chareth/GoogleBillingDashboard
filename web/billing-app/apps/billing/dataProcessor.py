@@ -461,12 +461,12 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
 def insert_project_data(project_id, project_name):
     done = False
     try:
-        project = Project('', project_id, project_name, '', '', '', '', 0)
+        project = Project('other', project_id, project_name, 'other', '', '', '', 0)
         db_session.add(project)
         db_session.commit()
         done = True
     except IntegrityError as e:
-        log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
+        #log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
         db_session.rollback()
         project = Project.query.filter_by(project_id=project_id).first()
         project.project_name = project_name
