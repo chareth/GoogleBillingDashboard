@@ -38,6 +38,7 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
         $scope.totalCost = 0;
         $.each($scope.costCenterList, function (k, v) {
           $scope.totalCost += v.cost;
+          v.directorName = v.name;
         });
 
 
@@ -50,6 +51,8 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
             v.percentUsed = (v.cost * 100) / $scope.totalCost;
             v.supportUsed = (v.percentUsed * value.cost) / 100;
             v.total = v.supportUsed + v.cost;
+            delete v.name;
+
           });
 
 

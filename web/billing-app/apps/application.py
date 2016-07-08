@@ -25,20 +25,18 @@ def shutdown_session(exception=None):
 logging.basicConfig(level=logging.NOTSET, filename='billing.log')
 log = logging.getLogger()
 
-init_scheduler()
-
+#init_scheduler()
 
 '''
   Init scheduler only once for all the workers
-
+'''
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(("127.0.0.1", 47500))
 except socket.error:
     print "!!!scheduler already started, DO NOTHING"
 else:
-
+    init_scheduler()
     print "scheduler started"
 
 
-'''

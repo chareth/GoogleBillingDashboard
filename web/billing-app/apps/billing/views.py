@@ -21,7 +21,7 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_quarter_center, get_costs_per_resource_all_project_per_day_quarter, \
     get_costs_per_resource_per_project_per_day_quarter, project_list_per_center
 
-from apps.config.apps_config import log, QUOTA_VIEW
+from apps.config.apps_config import log, QUOTA_VIEW, SCHEDULER_HOUR, SCHEDULER_MIN
 from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial
 
 import datetime
@@ -51,6 +51,7 @@ def cost_center_data():
 def projects_cost_center():
     url = 'billing/projects.html'
     return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+
 
 # route handles for /admin and /admin/page
 @mod.route('/director')
@@ -84,7 +85,7 @@ def load_data():
     else:
         response = run_scheduler()
         message = 'Job  is set to run now ' + str(datetime.datetime.now()) + ' and next run is at ' + \
-                  str(os.environ.get('SCHEDULER_HOUR')) + '.' + str(os.environ.get('SCHEDULER_MIN'))
+                  str(SCHEDULER_HOUR) + '.' + str(SCHEDULER_HOUR)
 
     resp = Response(response=json.dumps(message),
                     status=200,
@@ -119,6 +120,7 @@ def get_project_list():
                     status=data['status'],
                     mimetype="application/json")
     return resp
+
 
 '''
 

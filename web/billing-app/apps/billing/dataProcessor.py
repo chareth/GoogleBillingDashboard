@@ -21,7 +21,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
 from sqlalchemy.exc import IntegrityError
-import random
 import binascii
 
 scheduler = BackgroundScheduler()
@@ -78,6 +77,11 @@ def data_processor(job_type):
     message = 'Prcoess Complete '
     startTime = datetime.datetime.now()
     lock_file = True
+    log.info('BUCKET_NAME')
+    log.info(BUCKET_NAME)
+    log.info('ARCHIVE_BUCKET_NAME')
+    log.info(ARCHIVE_BUCKET_NAME)
+
     try:
         bucket = BUCKET_NAME
         archive_bucket = ARCHIVE_BUCKET_NAME
@@ -521,4 +525,7 @@ def set_scheduler_initial():
     global scheduler
     scheduler = BackgroundScheduler()
     scheduler.start()
+    log.info(os.environ.get('SCHEDULER_HOUR'))
+    log.info(os.environ.get('SCHEDULER_MIN'))
+
     set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))

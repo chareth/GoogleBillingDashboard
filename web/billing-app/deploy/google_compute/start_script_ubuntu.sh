@@ -15,6 +15,22 @@ export MYSQL_DBNAME=$(curl --fail -s http://metadata/computeMetadata/v1/instance
 export BUCKET_NAME=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/BUCKET_NAME -H "Metadata-Flavor: Google")
 export ARCHIVE_BUCKET_NAME=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/ARCHIVE_BUCKET_NAME -H "Metadata-Flavor: Google")
 export QUOTA_VIEW=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/QUOTA_VIEW -H "Metadata-Flavor: Google")
+export SCHEDULER_HOUR=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/SCHEDULER_HOUR -H "Metadata-Flavor: Google")
+export SCHEDULER_MIN=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/SCHEDULER_MIN -H "Metadata-Flavor: Google")
+
+
+echo MYSQL_USER
+echo MYSQL_PASS
+echo MYSQL_DBNAME
+echo MYSQL_HOST
+echo BUCKET_NAME
+echo ARCHIVE_BUCKET_NAME
+echo QUOTA_VIEW
+echo SCHEDULER_HOUR
+echo SCHEDULER_MIN
+
+
+
 
 echo "Automation user Creation"
 USER='automation'
