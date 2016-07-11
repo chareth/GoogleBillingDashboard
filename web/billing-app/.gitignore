@@ -492,3 +492,4 @@ usage_csv/
 *.sql
 
 *.log
+*.MD
