@@ -1,6 +1,6 @@
 <div class="col-md-12" ng-controller="UsageController">
 
-    <div class="row-fuild">
+    <div class="row-fluid">
         <div class="panel panel-default">
             <h2 class="text-center">
                  <span class="fa-stack fa-lg">
@@ -79,7 +79,7 @@
                 </div>
 
             </div>
-            <div class="col-md-4">
+            <div class="pull-right add-padding">
                 <a ng-controller="exportController" id='export' class="btn btn-success pull-right"
                    ng-click="export(costData,costCenterSelected + '_' + spanSelected + '_' + spanValueSelected )"
                    ng-disabled="!costData.length">Export Table to

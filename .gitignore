@@ -1,6 +1,9 @@
 /target/
 .settings
 .idea/
+/venv/
+/node_modules/
+web/billing-app/apps/config/apps_config.py
 web/billing-app/apps/billing/billingData_org.py
 web/billing-app/apps/billing/models_org.py
 web/billing-app/apps/billing/views_org.py

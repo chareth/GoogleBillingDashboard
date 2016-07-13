@@ -1,15 +1,10 @@
-{% macro nav_link(endpoint, name, main) %}
-{% if request.endpoint.replace('_','-').endswith(endpoint) or request.endpoint.replace('_','-').startswith(endpoint)%}
-  {% if main  %}
-      <li class="active"><a href="/{{ main }}/{{endpoint}}">{{name}}</a></li>
-  {% else %}
-     <li class="active"><a href=" /{{endpoint}}">{{name}}</a></li>
-  {% endif %}
-{% else %}
-   {% if main %}
-      <li><a href=" /{{ main }}/{{endpoint}}">{{name}}</a></li>
-  {% else %}
-     <li><a href=" /{{endpoint}}">{{name}}</a></li>
-  {% endif %}
-{% endif %}
+{% macro nav_link(endpoint, name) %}
+    {{ endpoint }}
+    {{ request.path.replace('/','') }}
+
+    {% if request.path.strip("/").endswith(endpoint) %}
+        <li class="active"><a href=" /{{ endpoint }}">{{ name }}</a></li>
+    {% else %}
+        <li class=""><a href=" /{{ endpoint }}">{{ name }}</a></li>
+    {% endif %}
 {% endmacro %}
