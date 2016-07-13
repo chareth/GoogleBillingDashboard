@@ -21,7 +21,7 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_quarter_center, get_costs_per_resource_all_project_per_day_quarter, \
     get_costs_per_resource_per_project_per_day_quarter, project_list_per_center
 
-from apps.config.apps_config import log, QUOTA_VIEW
+from apps.config.apps_config import log, QUOTA_VIEW, SCHEDULER_HOUR, SCHEDULER_MIN
 from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial
 
 import datetime
@@ -53,6 +53,13 @@ def projects_cost_center():
     return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
 
 
+# route handles for /admin and /admin/page
+@mod.route('/director')
+def director_level_billing():
+    url = 'billing/director_billing.html'
+    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+
+
 # route handles for creating table for first time
 @mod.route('/table')
 def table():
@@ -78,7 +85,7 @@ def load_data():
     else:
         response = run_scheduler()
         message = 'Job  is set to run now ' + str(datetime.datetime.now()) + ' and next run is at ' + \
-                  str(os.environ.get('SCHEDULER_HOUR')) + '.' + str(os.environ.get('SCHEDULER_MIN'))
+                  str(SCHEDULER_HOUR) + '.' + str(SCHEDULER_HOUR)
 
     resp = Response(response=json.dumps(message),
                     status=200,
@@ -111,6 +118,23 @@ def get_project_list():
 
     resp = Response(response=json.dumps(data['data']),
                     status=data['status'],
+                    mimetype="application/json")
+    return resp
+
+
+'''
+
+    API to get the Support cost
+    figure out how to populate this
+'''
+
+
+@mod.route('/usage/support_cost', methods=['GET'])
+def get_support_cost():
+    data = dict(cost=15000)
+
+    resp = Response(response=json.dumps(data),
+                    status=200,
                     mimetype="application/json")
     return resp
 

@@ -61,9 +61,9 @@ cuProjectsControllers.controller('CostCenterController', ['$scope', '$location' 
 
 /*
  * Controller for Cost Center View page*/
-cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , '$modal', '$cookies',
+cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , '$uibModal', '$cookies',
   'UsageCost', '$log', '$sce',
-  function ($scope, $location, $modal, $cookies, UsageCost, $log, $sce) {
+  function ($scope, $location, $uibModal, $cookies, UsageCost, $log, $sce) {
     var init = function () {
 
       $scope.getCostCenterList();
@@ -172,7 +172,7 @@ cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , 
     };
     $scope.showModal = function (type, project) {
 
-      $modal.open({
+      $uibModal.open({
         templateUrl: '/static/partials/billing/projectInfo.html',
         controller: 'ProjectInfoController',
         size: 'lg',
@@ -211,16 +211,16 @@ cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , 
 /**
  * Project Delete  Modal Controller
  */
-cuProjectsControllers.controller('ProjectInfoController', ['$scope', '$modalInstance' , 'project', '$log', 'type', '$rootScope',
+cuProjectsControllers.controller('ProjectInfoController', ['$scope', '$uibModalInstance' , 'project', '$log', 'type', '$rootScope',
   'UsageCost', '$sce',
-  function ($scope, $modalInstance, project, $log, type, $rootScope, UsageCost, $sce) {
+  function ($scope, $uibModalInstance, project, $log, type, $rootScope, UsageCost, $sce) {
     $scope.fail = false;
     $scope.project = project;
     $scope.type = type;
 
 
     $scope.close = function () {
-      $modalInstance.dismiss('cancel');
+      $uibModalInstance.dismiss('cancel');
 
     };
     $scope.delete = function () {
@@ -230,7 +230,7 @@ cuProjectsControllers.controller('ProjectInfoController', ['$scope', '$modalInst
       UsageCost.deleteProject(project).then(function (value) {
         $log.info(value);
         $scope.loading = false;
-        $modalInstance.dismiss('cancel');
+        $uibModalInstance.dismiss('cancel');
         $rootScope.$broadcast('getCostCenterList');
       }, function (reason) {
         var msg = (reason.data && reason.data.message) ? reason.data.message : CU.usage_error_msg;

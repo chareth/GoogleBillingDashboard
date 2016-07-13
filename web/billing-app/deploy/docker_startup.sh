@@ -9,6 +9,7 @@ set -e
 APP_NAME=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/app-name -H "Metadata-Flavor: Google")
 ARTIFACT_BUCKET=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/bucket -H "Metadata-Flavor: Google")
 
+
 echo "Update package information, ensure that APT works with the https method, and that CA certificates are installed"
 apt-get update
 apt-get install apt-transport-https ca-certificates
@@ -17,7 +18,7 @@ echo "Add the new GPG key."
 apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
 
 echo "Add an entry for your Ubuntu operating system"
-gsutil cp -R ${ARTIFACT_BUCKET}/web/billing-app/deploy/docker.list /etc/apt/sources.list.d/
+gsutil -m cp -R ${ARTIFACT_BUCKET}/web/billing-app/deploy/docker.list /etc/apt/sources.list.d/
 
 echo "Update the APT package index."
 apt-get update
@@ -60,7 +61,7 @@ echo "Docker-compose Build"
 docker-compose build
 
 #echo "Docker-compose up"
-#docker-compose up -d
+docker-compose up -d
 
 
 

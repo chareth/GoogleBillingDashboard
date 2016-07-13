@@ -43,7 +43,8 @@
                     <select class="form-control" ng-model="viewSelected"
                             ng-change="updateURL(false,'view')">
                         <option ng-repeat="(key, value) in viewList" value="{{ key }}"
-                                ng-selected="{{ key == viewSelected }}" ng-disabled="costCenterSelected =='all'">{{ value }}</option>
+                                ng-selected="{{ key == viewSelected }}"
+                                ng-disabled="costCenterSelected =='all'">{{ value }}</option>
                     </select>
                 </div>
 
@@ -79,7 +80,10 @@
 
             </div>
             <div class="col-md-4">
-                <a id='export' class="btn btn-success" ng-click="export()" ng-disabled="!costData.length">Export Table to Excel
+                <a ng-controller="exportController" id='export' class="btn btn-success pull-right"
+                   ng-click="export(costData,costCenterSelected + '_' + spanSelected + '_' + spanValueSelected )"
+                   ng-disabled="!costData.length">Export Table to
+                    Excel
                 </a>
             </div>
 

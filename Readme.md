@@ -93,6 +93,11 @@ Landing page  :
    **/quota/**   
    To use the API call for a given project:  
    **/quota/<project-name>**  
+   To see Director Level billing:  
+   **/billing/director**  
+   Api to get the support cost:  
+   **/billing/usage/support_cost**
+   
    
 
 ## License

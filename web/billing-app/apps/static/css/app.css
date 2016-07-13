@@ -19,7 +19,7 @@ select option {
     text-transform: capitalize;
 }
 
-/* Audit*/
+/* Audit
 @media (min-width: 768px) {
     th, td {
         border-style: solid;
@@ -34,7 +34,7 @@ select option {
     }
 
 }
-
+*/
 /*Login*/
 
 .form-signin {

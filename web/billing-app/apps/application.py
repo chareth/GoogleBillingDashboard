@@ -22,9 +22,10 @@ def shutdown_session(exception=None):
     db_session.close()
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.NOTSET, filename='billing.log')
 log = logging.getLogger()
 
+#init_scheduler()
 
 '''
   Init scheduler only once for all the workers

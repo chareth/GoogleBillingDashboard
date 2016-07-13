@@ -18,8 +18,8 @@ from sqlalchemy.sql.sqltypes import Integer, String, DATETIME, FLOAT, DECIMAL
 '''
 
 
-class Projects(Base):
-    __tablename__ = 'projects'
+class Project(Base):
+    __tablename__ = 'Project'
     id = Column(Integer, primary_key=True)
     cost_center = Column(String(100))
     project_id = Column(String(16))
@@ -53,8 +53,8 @@ class Projects(Base):
 '''
 
 
-class Usage(Base):
-    __tablename__ = 'usage'
+class Billing(Base):
+    __tablename__ = 'Billing'
     id = Column(Integer, primary_key=True)
     usage_date = Column(DATETIME)
     cost = Column(FLOAT)

@@ -40,15 +40,17 @@
     border: none;
 
 }
-.nvtooltip thead td{
+
+.nvtooltip thead td {
     border-bottom: 5px solid #000;
     text-align: center;
 }
-.nvtooltip tbody td{
+
+.nvtooltip tbody td {
     padding: 10px;
 }
 
-.cost_center{
+.cost_center {
     text-transform: capitalize;
 }
 
@@ -61,4 +63,15 @@
 
 .main_page.panel-body {
     min-height: 100px;
+}
+
+.uib-month button {
+    padding: 5px;
+}
+
+.uib-monthpicker th, .uib-monthpicker td {
+    border-style: solid;
+    border-width: 5px;
+    border-color: #BCBCBC;
+    word-wrap: break-word;
 }

@@ -14,39 +14,45 @@
  */
 
 if (document.URL.indexOf('billing') != -1) {
-    var cuApp = angular.module('cuApp', [
-        'ngRoute',
-        'ngCookies',
-        'ui.bootstrap',
-        'cuControllers',
-        'loginService',
-        'cuBillingControllers',
-        'cuProjectsControllers',
-        'billingService',
-        'cuFilters'
-    ]);
+  var cuApp = angular.module('cuApp', [
+    'ngRoute',
+    'ngCookies',
+    'ui.bootstrap',
+    'angular.filter',
+    'cuControllers',
+    'loginService',
+    'cuBillingControllers',
+    'cuProjectsControllers',
+    'cuDirectorsControllers',
+    'billingService',
+    'exportImportController',
+    'cuFilters'
+  ]);
 
 } else if (document.URL.indexOf('quota') != -1) {
-    var cuApp = angular.module('cuApp', [
-        'ngRoute',
-        'ngCookies',
-        'ui.bootstrap',
-        'cuControllers',
-        'loginService',
-        'cuQuotaControllers',
-        'quotaService',
-        'billingService',
-        'cuFilters'
-    ]);
+  var cuApp = angular.module('cuApp', [
+    'ngRoute',
+    'ngCookies',
+    'ui.bootstrap',
+    'angular.filter',
+    'cuControllers',
+    'loginService',
+    'cuQuotaControllers',
+    'cuDirectorsControllers',
+    'quotaService',
+    'billingService',
+    'cuFilters'
+  ]);
 
 } else {
-    var cuApp = angular.module('cuApp', [
-        'ngRoute',
-        'ngCookies',
-        'ui.bootstrap',
-        'cuControllers',
-        'loginService'
-    ]);
+  var cuApp = angular.module('cuApp', [
+    'ngRoute',
+    'ngCookies',
+    'ui.bootstrap',
+    'angular.filter',
+    'cuControllers',
+    'loginService'
+  ]);
 }
 /*
  Define all the routing used for this app
@@ -56,14 +62,14 @@ if (document.URL.indexOf('billing') != -1) {
  */
 
 cuApp.run(function ($rootScope, $cookies) {
-    $rootScope.login_cookie = $cookies.get('cloudAdminCookie');
-    $rootScope.user = $cookies.get('cloudUser');
-    $rootScope.isLogged = function () {
-        if ($cookies.get('cloudAdminCookie') && $cookies.get('cloudAdminCookie') != '') {
-            return true;
-        } else {
-            return false;
-        }
-    };
+  $rootScope.login_cookie = $cookies.get('cloudAdminCookie');
+  $rootScope.user = $cookies.get('cloudUser');
+  $rootScope.isLogged = function () {
+    if ($cookies.get('cloudAdminCookie') && $cookies.get('cloudAdminCookie') != '') {
+      return true;
+    } else {
+      return false;
+    }
+  };
 
 });
