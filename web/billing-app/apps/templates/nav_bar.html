@@ -18,7 +18,9 @@
             <ul class="nav navbar-nav">
                 {{ nav_link('billing', 'Billing') }}
                 {{ nav_link('billing/projects', 'Project') }}
-                {{ nav_link('usage', 'Usage') }}
+                {% if usage_flag == 'True' %}
+                    {{ nav_link('usage', 'Usage') }}
+                {% endif %}
                 {% if  quota_flag  == 'True' %}
                     {{ nav_link('quota', 'Quota') }}
                 {% endif %}

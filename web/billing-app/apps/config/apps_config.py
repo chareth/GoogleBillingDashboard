@@ -16,7 +16,7 @@ SQLALCHEMY_RECORD_QUERIES = True
   SQL DB
 
 '''
-#SQLALCHEMY_DATABASE_URI = 'mysql://root:password@localhost/reporting'
+# SQLALCHEMY_DATABASE_URI = 'mysql://root:axc1888@localhost/reporting'
 SQLALCHEMY_DATABASE_URI = 'mysql://' + os.environ.get('MYSQL_USER') + ':' + os.environ.get(
     'MYSQL_PASS') + '@' + os.environ.get('MYSQL_HOST') + '/' + os.environ.get('MYSQL_DBNAME')
 
@@ -38,6 +38,7 @@ Base.query = db_session.query_property()
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
 ARCHIVE_BUCKET_NAME = os.environ.get('ARCHIVE_BUCKET_NAME')
 QUOTA_VIEW = os.environ.get('QUOTA_VIEW')
+USAGE_VIEW = os.environ.get('USAGE_VIEW')
 SCHEDULER_HOUR = os.environ.get('SCHEDULER_HOUR')
 SCHEDULER_MIN = os.environ.get('SCHEDULER_MIN')
 
@@ -65,5 +66,3 @@ def log_error(e):
 
 def log_output(data):
     return log.info('Data -- {0}'.format(data))
-
-

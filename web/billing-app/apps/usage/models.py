@@ -13,7 +13,7 @@ from sqlalchemy.sql.sqltypes import Integer, String, DATETIME, FLOAT, DECIMAL
 
 
 class Usage(Base):
-    __tablename__ = 'usage'
+    __tablename__ = 'Usage'
     id = Column(Integer, primary_key=True)
     usage_date = Column(DATETIME)
     resource_type = Column(String(128))
