@@ -7,7 +7,7 @@ import logging
 
 from apps.billing.models import Billing, Project
 from apps.usage.models import Usage
-from apps.config.apps_config import db_session, log, USAGE_VIEW
+from apps.config.apps_config import db_session, log, USAGE_VIEW,QUOTA_VIEW
 from apps.usage.usageData import run_scheduler,data_processor, set_scheduler_initial
 from flask import Blueprint, request
 from flask.wrappers import Response
@@ -21,12 +21,14 @@ log = logging.getLogger()
 
 mod = Blueprint('usage', __name__, url_prefix='/usage')
 
+log.info('here')
+log.info(USAGE_VIEW)
 
 @mod.route('/')
 @app.route('/index')
 def index():
     url = 'usage/index.html'
-    return render_template(url, usage_flag=USAGE_VIEW, title="Cloud Admin Tool")
+    return render_template(url,quota_flag=QUOTA_VIEW, usage_flag=USAGE_VIEW, title="Cloud Admin Tool")
 
 
 @mod.route('/api/dbdump')
