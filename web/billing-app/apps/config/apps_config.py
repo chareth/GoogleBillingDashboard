@@ -16,7 +16,7 @@ SQLALCHEMY_RECORD_QUERIES = True
   SQL DB
 
 '''
-# SQLALCHEMY_DATABASE_URI = 'mysql://root:axc1888@localhost/reporting'
+# SQLALCHEMY_DATABASE_URI = 'mysql://root:password@localhost/reporting'
 SQLALCHEMY_DATABASE_URI = 'mysql://' + os.environ.get('MYSQL_USER') + ':' + os.environ.get(
     'MYSQL_PASS') + '@' + os.environ.get('MYSQL_HOST') + '/' + os.environ.get('MYSQL_DBNAME')
 
