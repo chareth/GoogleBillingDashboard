@@ -15,6 +15,11 @@ i.fa.fa-sort-up, i.fa.fa-sort-down, i.fa.fa-times, [data-id=login], [data-id=log
     cursor: pointer;
 }
 
+a.sort {
+    text-decoration: none;
+    color: #000;
+}
+
 select option {
     text-transform: capitalize;
 }

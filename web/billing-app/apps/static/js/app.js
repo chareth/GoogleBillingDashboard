@@ -51,6 +51,8 @@ if (document.URL.indexOf('billing') != -1) {
     'ui.bootstrap',
     'angular.filter',
     'cuControllers',
+    'usageController',
+    'usageService',
     'loginService'
   ]);
 }

@@ -1,0 +1,142 @@
+<div class="col-md-12" ng-controller="usageController">
+
+  <div class="row-fluid">
+    <div class="panel panel-default">
+      <h2 class="text-center">
+        <span class="fa-stack fa-lg">
+          <i class="fa fa-square-o fa-stack-2x text-success"></i>
+          <i class="fa fa-database fa-stack-1x text-success"></i>
+        </span>
+          Usage Data
+      </h2>
+
+      <hr class="clear">
+
+      <div class="panel-body filters">
+
+        <div class="col-md-1">
+          <label class="text-right" for="dropdownYear" style="padding: 5px;">Year</label>
+          <select class="form-control" ng-model="year" id="dropdownYear">
+            <option ng-repeat="y in yearsList" value="{{y}}">
+              {{y}}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-1">
+          <label class="text-right" for="dropdownMonth" style="padding: 5px;">Month</label>
+          <select class="form-control" ng-model="month" id="dropdownMonth">
+            <option ng-repeat="m in monthsList" value="{{m.num}}">
+              {{m.month}}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <label class="text-right" for="dropdownProject" style="padding: 5px;">Project</label>
+          <select class="form-control" ng-model="project" id="dropdownProject">
+            <option ng-repeat="p in projectsList" value="{{p}}">
+              {{p}}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-1">
+          <button type="button" class="btn btn-warning" style="margin-top:35px;" ng-click="getUsageTable()" ng-disabled="loading">Filter Results</button>
+        </div>
+
+        <div class="col-md-1">
+          <button type="button" class="btn btn-warning" style="margin-top:35px;" ng-click="reset()" ng-disabled="loading">Reset Results</button>
+        </div>
+      </div>
+
+      <hr class="clear">
+      <div ng-include="'/static/partials/loading.html'"></div>
+
+      <div class="panel-body" ng-hide="loading">
+
+        <div class="table-responsive">
+
+          <table class="table table-stripped table-bordered">
+
+            <thead>
+              <th class="text-center bg-warning">
+                <a class="sort" href="#" ng-click="sortType = 'usage_date'; sortReverse = !sortReverse">
+                  Usage Date
+                  <span class="fa fa-caret-down" ng-show="sortType == 'usage_date' && !sortReverse"></span>
+                  <span class="fa fa-caret-up" ng-show="sortType == 'usage_date' && sortReverse"></span>
+                </a>
+              </th>
+              <th class="text-center bg-warning">
+                <a class="sort" href="#" ng-click="sortType = 'resource_type'; sortReverse = !sortReverse">
+                  Resource Type
+                  <span class="fa fa-caret-down" ng-show="sortType == 'resource_type' && !sortReverse"></span>
+                  <span class="fa fa-caret-up" ng-show="sortType == 'resource_type' && sortReverse"></span>
+                </a>
+              </th>
+              <th class="text-center bg-warning">
+                <a class="sort" href="#" ng-click="sortType = 'resource_id'; sortReverse = !sortReverse">
+                  Resource ID
+                  <span class="fa fa-caret-down" ng-show="sortType == 'resource_id' && !sortReverse"></span>
+                  <span class="fa fa-caret-up" ng-show="sortType == 'resource_id' && sortReverse"></span>
+                </a>
+              </th>
+              <th class="text-center bg-warning">
+                <a class="sort" href="#" ng-click="sortType = 'resource_uri'; sortReverse = !sortReverse">
+                  Resource URI
+                  <span class="fa fa-caret-down" ng-show="sortType == 'resource_uri' && !sortReverse"></span>
+                  <span class="fa fa-caret-up" ng-show="sortType == 'resource_uri' && sortReverse"></span>
+                </a>
+              </th>
+              <th class="text-center bg-warning">
+                <a class="sort" href="#" ng-click="sortType = 'location'; sortReverse = !sortReverse">
+                  Location
+                  <span class="fa fa-caret-down" ng-show="sortType == 'location' && !sortReverse"></span>
+                  <span class="fa fa-caret-up" ng-show="sortType == 'location' && sortReverse"></span>
+                </a>
+              </th>
+              <th class="text-center bg-warning">
+                <a class="sort" href="#" ng-click="sortType = 'usage_value'; sortReverse = !sortReverse">
+                  Usage Value
+                  <span class="fa fa-caret-down" ng-show="sortType == 'usage_value' && !sortReverse"></span>
+                  <span class="fa fa-caret-up" ng-show="sortType == 'usage_value' && sortReverse"></span>
+                </a>
+              </th>
+              <th class="text-center bg-warning">
+                <a class="sort"  href="#" ng-click="sortType = 'measurement_unit'; sortReverse = !sortReverse">
+                  Measurement Unit
+                  <span class="fa fa-caret-down" ng-show="sortType == 'measurement_unit' && !sortReverse"></span>
+                  <span class="fa fa-caret-up" ng-show="sortType == 'measurement_unit' && sortReverse"></span>
+                </a>
+              </th>
+
+            </thead>
+
+            <tbody>
+              <tr ng-repeat="u in usageTable | orderBy:sortType:sortReverse track by $index">
+                <td>{{u.usage_date}}</td>
+                <td>{{u.resource_type}}</td>
+                <td>{{u.resource_id}}</td>
+                <td>{{u.resource_uri}}</td>
+                <td>{{u.location}}</td>
+                <td class="text-right">{{u.usage_value}}</td>
+                <td>{{u.measurement_unit}}</td>
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+      <!-- panel-body table -->
+
+      <div class="clear panel-body bg-info text-center" ng-hide="usageTable.length || loading">
+          No data available, try again later.
+      </div>
+
+    </div>
+    <!-- panel -->
+
+  </div>
+  <!-- end of row-->
+
+</div>
