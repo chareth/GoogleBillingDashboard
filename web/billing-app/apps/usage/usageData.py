@@ -18,33 +18,6 @@ from oauth2client.client import GoogleCredentials
 scheduler = BackgroundScheduler()
 
 
-def run_scheduler():
-    global scheduler
-    log.info('---- In run_scheduler ----')
-    scheduler.remove_all_jobs()
-    scheduler.print_jobs()
-    scheduler.add_job(data_processor, id='data_processor', replace_existing=True, args=['now'], max_instances=1)
-    log.info('------ Jobs List -----')
-    scheduler.print_jobs()
-    return scheduler
-
-
-def set_scheduler(hour, min):
-    global scheduler
-    scheduler.remove_all_jobs()
-    scheduler.print_jobs()
-    log.info(' ----- IN SET SCHEDULER -----')
-    scheduler.add_job(data_processor, hour=get_time(hour, min)['hour'],
-                      minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
-                      replace_existing=True,
-                      max_instances=1,
-                      id='data_processor', args=['cron'])
-    log.info('------ SCHEDULER INIT -----')
-    log.info('------ Jobs List -----')
-    scheduler.print_jobs()
-    return scheduler
-
-
 def get_time(hour, mins):
 
     '''
@@ -443,11 +416,3 @@ def delete_file(filename, service, bucket):
         log.error('Error in deleting the old file - {0}'.format(e[0]))
         # add code to add metadata or rename the file
     return resp
-
-
-def set_scheduler_initial():
-    print(' -------------- SETTING INITiAL SCHEDULER ---------------------')
-    global scheduler
-    scheduler = BackgroundScheduler()
-    scheduler.start()
-    set_scheduler(os.environ.get('SCHEDULER_HOUR'), os.environ.get('SCHEDULER_MIN'))

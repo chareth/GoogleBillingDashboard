@@ -8,21 +8,15 @@ import logging
 from apps.billing.models import Billing, Project
 from apps.usage.models import Usage
 from apps.config.apps_config import db_session, log, USAGE_VIEW,QUOTA_VIEW
-from apps.usage.usageData import run_scheduler,data_processor, set_scheduler_initial
+from apps.usage.usageData import data_processor
 from flask import Blueprint, request
 from flask.wrappers import Response
 from flask.templating import render_template
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, relationship
-
 logging.basicConfig(level=logging.DEBUG)
 
 log = logging.getLogger()
 
 mod = Blueprint('usage', __name__, url_prefix='/usage')
-
-log.info('here')
-log.info(USAGE_VIEW)
 
 @mod.route('/')
 @app.route('/index')
@@ -115,8 +109,3 @@ def loadData():
                     mimetype="application/json")
     return resp
 
-
-
-
-def init_scheduler():
-    set_scheduler_initial()
