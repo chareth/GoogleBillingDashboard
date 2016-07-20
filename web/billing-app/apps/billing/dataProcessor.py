@@ -268,7 +268,6 @@ def get_filenames(resp, service, random_number):
                     log.info('File was not locked and hence locking it and processing the files')
                     # ARCHIVE THE FILE FIRST
                     copy_resp = copy_file_to_archive(filename, service, BUCKET_NAME, ARCHIVE_BUCKET_NAME)
-                    log.info(copy_resp)
                     if len(copy_resp) == 0:
                         log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
                     else:
@@ -346,6 +345,7 @@ def insert_usage_data(data_list, filename, service):
     try:
         data_count = 0
         total_count = 0
+        log.info('---- Starting to Add/Update billing data -----')
         for data in data_list:
             total_count += 1
 
@@ -411,6 +411,7 @@ def insert_project__table_data(data_list, filename, service):
     try:
         data_count = 0
         total_count = 0
+        log.info('---- Starting to Add/Update Project Name -----')
         for data in data_list:
             total_count += 1
 
@@ -447,6 +448,7 @@ def insert_project__table_data(data_list, filename, service):
 
 def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
     done = False
+    log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
     try:
         usage = Billing(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
         db_session.add(usage)
@@ -471,13 +473,14 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
 
 def insert_project_data(project_id, project_name):
     done = False
+    log.info('{0}<---->{1}'.format(project_id, project_name))
     try:
         project = Project('other', project_id, project_name, 'other', '', '', '', 0)
         db_session.add(project)
         db_session.commit()
         done = True
     except IntegrityError as e:
-        #log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
+        # log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
         db_session.rollback()
         project = Project.query.filter_by(project_id=project_id).first()
         project.project_name = project_name

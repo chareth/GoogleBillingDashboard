@@ -19,16 +19,6 @@ export SCHEDULER_HOUR=$(curl --fail -s http://metadata/computeMetadata/v1/instan
 export SCHEDULER_MIN=$(curl --fail -s http://metadata/computeMetadata/v1/instance/attributes/SCHEDULER_MIN -H "Metadata-Flavor: Google")
 
 
-echo MYSQL_USER
-echo MYSQL_PASS
-echo MYSQL_DBNAME
-echo MYSQL_HOST
-echo BUCKET_NAME
-echo ARCHIVE_BUCKET_NAME
-echo QUOTA_VIEW
-echo SCHEDULER_HOUR
-echo SCHEDULER_MIN
-
 
 
 

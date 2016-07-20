@@ -23,7 +23,7 @@ def shutdown_session(exception=None):
     db_session.close()
 
 
-logging.basicConfig(level=logging.NOTSET, filename='billing.log')
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
 #init_scheduler()

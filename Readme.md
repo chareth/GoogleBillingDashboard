@@ -50,6 +50,14 @@ On a mac simply run:
   * QUOTA_VIEW=True or False  
 When set to **True** it will have the link to view the Metrics Usage for all projects else it is hidden in the navbar. In order to have the data from other projects, the current project in which the code is deployed should have access to read all the projects and this is possible by adding the service account of this project into the other projects(https://cloud.google.com/docs/permissions-overview).
 
+
+### Google Logging Agent
+1. SSH into the instance that needs to have logging enabled and run the following commands
+    * curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh 
+    * sha256sum install-logging-agent.sh
+    * sudo bash install-logging-agent.sh
+2. https://console.cloud.google.com/project/_/logs?_ga=1.130158860.2097292484.1468961641 will have the logs for that instance
+
 ### For local developlement 
   If running locally add the path to the JSON file for the service account in apps_config.py -- 'GOOGLE_APPLICATION_CREDENTIALS' and place the file under web/billing-app/.  
 
@@ -93,6 +101,11 @@ Landing page  :
    **/quota/**   
    To use the API call for a given project:  
    **/quota/<project-name>**  
+   To see Director Level billing:  
+   **/billing/director**  
+   Api to get the support cost:  
+   **/billing/usage/support_cost**
+   
    
 
 ## License
