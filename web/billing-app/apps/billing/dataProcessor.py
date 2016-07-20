@@ -261,7 +261,6 @@ def get_filenames(resp, service, random_number):
                     log.info('File was not locked and hence locking it and processing the files')
                     # ARCHIVE THE FILE FIRST
                     copy_resp = copy_file_to_archive(filename, service, BUCKET_NAME, ARCHIVE_BUCKET_NAME)
-                    log.info(copy_resp)
                     if len(copy_resp) == 0:
                         log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
                     else:
@@ -339,6 +338,7 @@ def insert_usage_data(data_list, filename, service):
     try:
         data_count = 0
         total_count = 0
+        log.info('---- Starting to Add/Update billing data -----')
         for data in data_list:
             total_count += 1
 
@@ -404,6 +404,7 @@ def insert_project__table_data(data_list, filename, service):
     try:
         data_count = 0
         total_count = 0
+        log.info('---- Starting to Add/Update Project Name -----')
         for data in data_list:
             total_count += 1
 
