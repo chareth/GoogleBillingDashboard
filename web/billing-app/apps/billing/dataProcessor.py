@@ -441,6 +441,7 @@ def insert_project__table_data(data_list, filename, service):
 
 def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
     done = False
+    log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
     try:
         usage = Billing(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
         db_session.add(usage)
@@ -465,13 +466,14 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
 
 def insert_project_data(project_id, project_name):
     done = False
+    log.info('{0}<---->{1}'.format(project_id, project_name))
     try:
         project = Project('other', project_id, project_name, 'other', '', '', '', 0)
         db_session.add(project)
         db_session.commit()
         done = True
     except IntegrityError as e:
-        #log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
+        # log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
         db_session.rollback()
         project = Project.query.filter_by(project_id=project_id).first()
         project.project_name = project_name

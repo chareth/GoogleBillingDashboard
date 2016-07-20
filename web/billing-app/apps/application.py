@@ -25,11 +25,11 @@ def shutdown_session(exception=None):
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
-init_scheduler()
+#init_scheduler()
 
 '''
   Init scheduler only once for all the workers
-
+'''
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(("127.0.0.1", 47500))
@@ -40,4 +40,3 @@ else:
     print "scheduler started"
 
 
-'''
