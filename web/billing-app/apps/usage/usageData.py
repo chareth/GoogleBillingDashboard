@@ -359,13 +359,13 @@ def insert_data(usage_date, resource_type, resource_id, resource_uri, location, 
     done = False
     log.info('---- starting to add info to DB ----')
     try:
-        log.info('--------------------- ADDED INFO TO DB ---------------------')
+        #log.info('--------------------- ADDED INFO TO DB ---------------------')
         usage = Usage(usage_date=usage_date, resource_type=resource_type, resource_id=resource_id, resource_uri=resource_uri, location=location, usage_value=usage_value, measurement_unit=measurement_unit)
         db_session.add(usage)
         db_session.commit()
         done = True
     except IntegrityError as e:
-        log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
+        #log.info('---- DATA ALREADY IN DB --- UPDATE  ------')
         # log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
         db_session.rollback()
         usage = Usage.query.filter_by( usage_date=usage_date, resource_type=resource_type, resource_id=resource_id, location=location).first()
@@ -404,13 +404,14 @@ def copy_file_to_archive(filename, service, main_bucket, dest_bucket):
 
 def delete_file(filename, service, bucket):
     resp = dict()
+    archive_bucket = bucket + '-archive'
     try:
-        log.info('Starting to Delete the file {0} from {1}'.format(filename, USAGE_BUCKET_NAME))
+        log.info('Starting to Delete the file {0} from {1}'.format(filename, archive_bucket))
 
         delete_object = service.objects().delete(bucket=bucket, object=filename)
         resp = delete_object.execute()
 
-        log.info('DONE Deleting file - {0}  from - {1} '.format(filename, USAGE_BUCKET_NAME))
+        log.info('DONE Deleting file - {0}  from - {1} '.format(filename, archive_bucket))
 
     except Exception as e:
         log.error('Error in deleting the old file - {0}'.format(e[0]))

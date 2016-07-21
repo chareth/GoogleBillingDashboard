@@ -32,8 +32,8 @@ def run_scheduler():
     log.info('---- In run_scheduler ----')
     scheduler.remove_all_jobs()
     scheduler.print_jobs()
-    scheduler.add_job(data_processor, id='data_processor', replace_existing=True, args=['now'], max_instances=1)
-    scheduler.add_job(usage_processor, id='usage_data_processor', replace_existing=True, args=['now'], max_instances=1)
+    scheduler.add_job(data_processor, id='data_processor', args=['now'])
+    scheduler.add_job(usage_processor, id='usage_data_processor', args=['now'])
     log.info('------ Jobs List -----')
     scheduler.print_jobs()
     return scheduler
@@ -46,13 +46,9 @@ def set_scheduler(hour, min):
     log.info(' ----- IN SET SCHEDULER -----')
     scheduler.add_job(data_processor, 'cron', hour=get_time(hour, min)['hour'],
                       minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
-                      replace_existing=True,
-                      max_instances=1,
                       id='data_processor', args=['cron'])
     scheduler.add_job(usage_processor, 'cron', hour=get_time(hour, min)['hour'],
                       minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
-                      replace_existing=True,
-                      max_instances=1,
                       id='usage_data_processor', args=['cron'])
     log.info('------ SCHEDULER INIT -----')
     log.info('------ Jobs List -----')
