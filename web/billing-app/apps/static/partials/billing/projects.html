@@ -10,21 +10,20 @@
     Project Info
 </h2>
 <hr class="clear">
-<div class="panel-body">
 <div class="col-md-8">
     <div class="panel-body bg-danger" ng-show="message">
         {{ message }} <i class="fa fa-times pull-right" ng-click="clear()">Close</i>
 
     </div>
 </div>
-<div class="col-md-4">
-    <a class="btn btn-success pull-left mB-10" href="/billing/director">
-        <i class="fa fa-table"></i> View Billing At Director Level
-    </a>
-    <div class="btn btn-primary pull-right mB-10" ng-click="addOne()">
-        <i class="fa fa-plus-square-o"></i> Project
+<div class="pull-right add-padding" role="group">
+    <div class="btn btn-warning" ng-click="addOne()">
+        <i class="fa fa-plus"></i> Add Project
     </div>
 </div>
+<hr class="clear">
+<div class="panel-body">
+
 
 <div class="panel-body bg-warning clear mB-10" ng-show="add">
     <form name="projectForm" ng-submit="add_save()" novalidate>

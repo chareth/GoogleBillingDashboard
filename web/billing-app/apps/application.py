@@ -8,13 +8,14 @@ app = Flask(__name__)
 from apps.billing.views import mod as billingModule
 from apps.login.views import mod as loginModule
 from apps.quota.views import mod as quotaModule
+from apps.usage.views import mod as usageModule
 from apps.billing.views import init_scheduler
 import sys, socket
 
 app.register_blueprint(billingModule)
 app.register_blueprint(loginModule)
 app.register_blueprint(quotaModule)
-
+app.register_blueprint(usageModule)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
@@ -22,7 +23,7 @@ def shutdown_session(exception=None):
     db_session.close()
 
 
-logging.basicConfig(level=logging.NOTSET, filename='billing.log')
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
 #init_scheduler()
@@ -38,5 +39,3 @@ except socket.error:
 else:
     init_scheduler()
     print "scheduler started"
-
-

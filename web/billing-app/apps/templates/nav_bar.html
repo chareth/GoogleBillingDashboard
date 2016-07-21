@@ -17,6 +17,10 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 {{ nav_link('billing', 'Billing') }}
+                {{ nav_link('billing/projects', 'Project') }}
+                {% if usage_flag == 'True' %}
+                    {{ nav_link('usage', 'Usage') }}
+                {% endif %}
                 {% if  quota_flag  == 'True' %}
                     {{ nav_link('quota', 'Quota') }}
                 {% endif %}

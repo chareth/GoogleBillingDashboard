@@ -1,15 +1,6 @@
-<div class="col-md-12" ng-controller="DirectorController">
+<div ng-controller="DirectorController">
 
-    <div class="row-fuild">
-        <div class="panel panel-default">
-            <h2 class="text-center">
-                 <span class="fa-stack fa-lg">
-              <i class="fa fa-square-o fa-stack-2x text-success"></i>
-              <i class="fa fa-dollar fa-stack-1x text-success"></i>
-            </span>
-                Billing Info at Director Level
 
-            </h2>
             <hr class="clear">
             <div class="form-group  col-md-6 ">
 
@@ -27,14 +18,6 @@
                     </p>
 
                 </div>
-                <div class="col-md-6">
-                    <a ng-controller="exportController" id='export' class="btn btn-success pull-right"
-                       ng-click="export(costCenterList,'DirectorLevelBilling-'+monthSelected )"
-                       ng-disabled="!costCenterList.length">Export Table to
-                        Excel
-                    </a>
-
-                </div>
 
 
             </div>
@@ -45,6 +28,15 @@
             </div>
 
             <hr class="clear">
+            <div class="pull-right add-padding">
+              <a ng-controller="exportController" id='export' class="btn btn-success pull-right"
+              ng-click="export(costCenterList,'DirectorLevelBilling-'+monthSelected )"
+              ng-disabled="!costCenterList.length">Export Table to
+              Excel
+            </a>
+
+          </div>
+          <hr class="clear">
             <div class="panel-body">
                 <div class="col-md-2"></div>
                 <div class="table-responsive col-md-8">
@@ -65,16 +57,16 @@
                             <td class="text-info cost_center">
                                 {{ cost_center.directorName }}
                             </td>
-                            <td class="text-info">
+                            <td class="text-info" align="right">
                                 ${{ cost_center.cost | number:2 }}
                             </td>
-                            <td class="text-info">
+                            <td class="text-info" align="right">
                                 {{ cost_center.percentUsed | number:2 }}%
                             </td>
-                            <td class="text-info">
+                            <td class="text-info" align="right">
                                 ${{ cost_center.supportUsed | number:2 }}
                             </td>
-                            <td class="text-info">
+                            <td class="text-info" align="right">
                                 ${{ cost_center.total | number:2 }}
                             </td>
                         </tr>
@@ -90,8 +82,4 @@
             <div ng-include="'/static/partials/loading.html'"></div>
             <!-- panel-body main -->
 
-        </div>
-        <!-- panel -->
-    </div>
-    <!-- end of row-->
 </div>

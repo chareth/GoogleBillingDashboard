@@ -17,6 +17,7 @@ from oauth2client.client import GoogleCredentials
 from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session
 import datetime
 from apps.billing.models import Billing, Project
+from apps.usage.usageData import data_processor as usage_processor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
@@ -31,7 +32,8 @@ def run_scheduler():
     log.info('---- In run_scheduler ----')
     scheduler.remove_all_jobs()
     scheduler.print_jobs()
-    scheduler.add_job(data_processor, id='data_processor', replace_existing=True, args=['now'], max_instances=1)
+    scheduler.add_job(data_processor, id='data_processor', args=['now'])
+    scheduler.add_job(usage_processor, id='usage_data_processor', args=['now'])
     log.info('------ Jobs List -----')
     scheduler.print_jobs()
     return scheduler
@@ -44,9 +46,10 @@ def set_scheduler(hour, min):
     log.info(' ----- IN SET SCHEDULER -----')
     scheduler.add_job(data_processor, 'cron', hour=get_time(hour, min)['hour'],
                       minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
-                      replace_existing=True,
-                      max_instances=1,
                       id='data_processor', args=['cron'])
+    scheduler.add_job(usage_processor, 'cron', hour=get_time(hour, min)['hour'],
+                      minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
+                      id='usage_data_processor', args=['cron'])
     log.info('------ SCHEDULER INIT -----')
     log.info('------ Jobs List -----')
     scheduler.print_jobs()
@@ -261,7 +264,6 @@ def get_filenames(resp, service, random_number):
                     log.info('File was not locked and hence locking it and processing the files')
                     # ARCHIVE THE FILE FIRST
                     copy_resp = copy_file_to_archive(filename, service, BUCKET_NAME, ARCHIVE_BUCKET_NAME)
-                    log.info(copy_resp)
                     if len(copy_resp) == 0:
                         log.error(' ERROR IN COPYING FILE --- SKIPPING FILE -- {0} '.format(filename))
                     else:
@@ -339,6 +341,7 @@ def insert_usage_data(data_list, filename, service):
     try:
         data_count = 0
         total_count = 0
+        log.info('---- Starting to Add/Update billing data -----')
         for data in data_list:
             total_count += 1
 
@@ -404,6 +407,7 @@ def insert_project__table_data(data_list, filename, service):
     try:
         data_count = 0
         total_count = 0
+        log.info('---- Starting to Add/Update Project Name -----')
         for data in data_list:
             total_count += 1
 
@@ -440,6 +444,7 @@ def insert_project__table_data(data_list, filename, service):
 
 def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit):
     done = False
+    log.info('{0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(usage_date, cost, project_id, resource_type,usage_value))
     try:
         usage = Billing(usage_date, cost, project_id, resource_type, account_id, usage_value, measurement_unit)
         db_session.add(usage)
@@ -464,13 +469,14 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
 
 def insert_project_data(project_id, project_name):
     done = False
+    log.info('{0}<---->{1}'.format(project_id, project_name))
     try:
         project = Project('other', project_id, project_name, 'other', '', '', '', 0)
         db_session.add(project)
         db_session.commit()
         done = True
     except IntegrityError as e:
-        #log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
+        # log.info('---- Project DATA ALREADY IN DB --- UPDATE  ------')
         db_session.rollback()
         project = Project.query.filter_by(project_id=project_id).first()
         project.project_name = project_name

@@ -21,7 +21,7 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_quarter_center, get_costs_per_resource_all_project_per_day_quarter, \
     get_costs_per_resource_per_project_per_day_quarter, project_list_per_center
 
-from apps.config.apps_config import log, QUOTA_VIEW, SCHEDULER_HOUR, SCHEDULER_MIN
+from apps.config.apps_config import log, QUOTA_VIEW, SCHEDULER_HOUR, SCHEDULER_MIN,USAGE_VIEW
 from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial
 
 import datetime
@@ -36,28 +36,28 @@ mod = Blueprint('billing', __name__, url_prefix='/billing')
 @mod.route('/')
 def billing():
     url = 'billing/index.html'
-    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+    return render_template(url, quota_flag=QUOTA_VIEW, usage_flag=USAGE_VIEW, title="Cloud Admin Tool")
 
 
 # route handles for /admin and /admin/page
 @mod.route('/cost_center/')
 def cost_center_data():
     url = 'billing/cost_center_data.html'
-    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+    return render_template(url, quota_flag=QUOTA_VIEW, usage_flag=USAGE_VIEW, title="Cloud Admin Tool")
 
 
 # route handles for /admin and /admin/page
 @mod.route('/projects')
 def projects_cost_center():
     url = 'billing/projects.html'
-    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+    return render_template(url,quota_flag=QUOTA_VIEW, usage_flag=USAGE_VIEW, title="Cloud Admin Tool")
 
 
 # route handles for /admin and /admin/page
 @mod.route('/director')
 def director_level_billing():
     url = 'billing/director_billing.html'
-    return render_template(url, quota_flag=QUOTA_VIEW, title="Cloud Admin Tool")
+    return render_template(url, quota_flag=QUOTA_VIEW, usage_flag=USAGE_VIEW, title="Cloud Admin Tool")
 
 
 # route handles for creating table for first time

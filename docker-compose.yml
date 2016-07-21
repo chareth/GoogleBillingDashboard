@@ -8,6 +8,8 @@ services:
     links:
       - mysql:mysql
     env_file: common.env
+    logging:
+      driver: syslog
 
   mysql:
     restart: "always"

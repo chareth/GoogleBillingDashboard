@@ -44,6 +44,18 @@ if (document.URL.indexOf('billing') != -1) {
     'cuFilters'
   ]);
 
+} else if (document.URL.indexOf('usage') != -1) {
+  var cuApp = angular.module('cuApp', [
+    'ngRoute',
+    'ngCookies',
+    'ui.bootstrap',
+    'angular.filter',
+    'cuControllers',
+    'loginService',
+    'usageController',
+    'usageService'
+  ]);
+
 } else {
   var cuApp = angular.module('cuApp', [
     'ngRoute',
@@ -52,6 +64,7 @@ if (document.URL.indexOf('billing') != -1) {
     'angular.filter',
     'cuControllers',
     'loginService'
+
   ]);
 }
 /*
