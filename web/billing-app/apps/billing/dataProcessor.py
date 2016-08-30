@@ -321,7 +321,7 @@ def process_file(filename, file_content, service):
 
         '''
         insert_resp = insert_usage_data(data_list, filename, service)
-        insert_project_resp = insert_project__table_data(data_list, filename, service)
+        # insert_project_resp = insert_project__table_data(data_list, filename, service)
 
         log.info('Processing file -- {0} -- ENDING'.format(filename))
 
@@ -385,6 +385,17 @@ def insert_usage_data(data_list, filename, service):
                     continue
                 else:
                     data_count += 1
+
+            if 'projectNumber' in data:
+                project_id = 'ID-' + str(data['projectNumber'])
+                if 'projectName' in data:
+                    project_insert_done = insert_project_data(project_id, data['projectName'])
+                else:
+                    project_insert_done = insert_project_data(project_id, project_id)
+
+            else:
+                project_id = 'Not Available'
+                project_insert_done = insert_project_data(project_id, 'support')
 
         usage = dict(message=' data has been added to db')
         log.info(
@@ -463,13 +474,15 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
 
         done = True
     except Exception as e:
-        log.error(' ------------- ERROR IN ADDING DATA TO THE DB ------------- {0}'.format(e[0]))
+        log.error(' ------------- ERROR IN ADDING USAGE DATA TO THE DB ------------- {0}'.format(e[0]))
+        log.error(
+            ' ------------- ERROR IN ADDING USAGE DATA TO THE DB ------------- {0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(
+                usage_date, cost, project_id, resource_type, usage_value))
     return done
 
 
 def insert_project_data(project_id, project_name):
     done = False
-    log.info('{0}<---->{1}'.format(project_id, project_name))
     try:
         project = Project('other', project_id, project_name, 'other', '', '', '', 0)
         db_session.add(project)
@@ -484,7 +497,10 @@ def insert_project_data(project_id, project_name):
 
         done = True
     except Exception as e:
-        log.error(' ------------- ERROR IN ADDING DATA TO THE DB ------------- {0}'.format(e[0]))
+        log.error(' ------------- ERROR IN ADDING PROJECT DATA TO THE DB ------------- {0}'.format(e[0]))
+        log.error(' ------------- ERROR IN ADDING PROJECT DATA TO THE DB ------------- {0}<---->{1}'.format(project_id,
+                                                                                                            project_name))
+
     return done
 
 

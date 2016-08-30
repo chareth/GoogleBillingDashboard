@@ -16,6 +16,10 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
       $scope.fail = false;
       $scope.loading = true;
       $scope.totalCost = 0;
+      $scope.totalDirectorCost = 0;
+      $scope.totalPercent = 0;
+      $scope.supportTotal = 0;
+      $scope.totalToPay = 0;
 
       var currentDate = new Date();
       $scope.currentFullYear = currentDate.getFullYear();
@@ -29,6 +33,24 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
       $scope.getCostCenterList($scope.current_month);
     };
 
+    $scope.isSupport = function (cost_center) {
+      if (cost_center.id == 'support') {
+        return true;
+      }
+      else {
+        return false;
+      }
+    };
+    /**
+     *
+     * @param year_month
+     * once the costcenter list is there
+     *  -- calculate the overall cost
+     *  -- calculate the support cost
+     *  -- calculate the cost without support
+     *    -- this is used to calculate the support cost each director should pay
+     *  -- once all %usage and support cost per director is calculated remove the support cost from the list
+     */
 
     $scope.getCostCenterList = function (year_month) {
       $scope.loading = true;
@@ -36,37 +58,41 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
         $scope.loading = false;
         $scope.costCenterList = value.usage_data;
         $scope.totalCost = 0;
+        $scope.totalDirectorCost = 0;
+        $scope.totalPercent = 0;
+        $scope.supportTotal = 0;
+        $scope.totalToPay = 0;
         $.each($scope.costCenterList, function (k, v) {
           $scope.totalCost += v.cost;
           v.directorName = v.name;
+          if (v.id == 'support') {
+            $scope.supportCost = v.cost;
+          }
+        });
+        $scope.totalCostWithoutSupport = $scope.totalCost - $scope.supportCost;
+
+        $.each($scope.costCenterList, function (k, v) {
+          v.percentUsed = (v.cost * 100) / ($scope.totalCostWithoutSupport);
+          v.supportUsed = (v.percentUsed * $scope.supportCost) / 100;
+          v.total = v.supportUsed + v.cost;
+          if (v.id != 'support') {
+            $scope.totalDirectorCost += v.cost;
+            $scope.totalPercent += v.percentUsed;
+            $scope.supportTotal += v.supportUsed;
+            $scope.totalToPay += v.total;
+          }
+
+
+        });
+        $.each($scope.costCenterList, function (k, v) {
+          if (v.id == 'support') {
+            $scope.costCenterList.splice(k, 1);
+            return false;
+          }
+
         });
 
-
-        UsageCost.getSupportCost().then(function (value) {
-
-          /**
-           * add % usage of total cost
-           */
-          $.each($scope.costCenterList, function (k, v) {
-            v.percentUsed = (v.cost * 100) / $scope.totalCost;
-            v.supportUsed = (v.percentUsed * value.cost) / 100;
-            v.total = v.supportUsed + v.cost;
-            delete v.name;
-
-          });
-
-
-        }, function (reason) {
-          var msg = (reason.data && reason.data.message) ? reason.data.message : CU.usage_error_msg;
-          $log.error('Reason for Failure ---', msg);
-          $scope.fail = true;
-          $scope.class_name = 'red';
-          $scope.loading = false;
-          $scope.message = $sce.trustAsHtml('Reason for Failure ---' + msg);
-
-        }, function (update) {
-          $log.info('Update  ---', update);
-        });
+        $log.info($scope.costCenterList);
 
 
       }, function (reason) {
