@@ -1,8 +1,5 @@
 {% macro nav_link(endpoint, name) %}
-    {{ endpoint }}
-    {{ request.path.replace('/','') }}
-
-    {% if request.path.strip("/").endswith(endpoint) %}
+ {% if request.path.strip("/").endswith(endpoint) %}
         <li class="active"><a href=" /{{ endpoint }}">{{ name }}</a></li>
     {% else %}
         <li class=""><a href=" /{{ endpoint }}">{{ name }}</a></li>
