@@ -23,6 +23,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import os
 from sqlalchemy.exc import IntegrityError, OperationalError
 import binascii
+import traceback
 
 scheduler = BackgroundScheduler()
 
@@ -388,16 +389,11 @@ def insert_usage_data(data_list, filename, service):
                 else:
                     data_count += 1
 
-            if 'projectNumber' in data:
-                project_id = 'ID-' + str(data['projectNumber'])
-                if 'projectName' in data:
-                    project_insert_done = insert_project_data(project_id, data['projectName'])
-                else:
-                    project_insert_done = insert_project_data(project_id, project_id)
+            project_update = insert_project__table_data(data)
 
-            else:
-                project_id = 'Not Available'
-                project_insert_done = insert_project_data(project_id, 'support')
+            if not project_update:
+                log.info(data)
+                raise Exception("information not inserted; DB Error")
 
         usage = dict(message=' data has been added to db')
         log.info(
@@ -405,6 +401,7 @@ def insert_usage_data(data_list, filename, service):
     except Exception as e:
         log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
         db_session.rollback()
+        traceback.print_exc()
 
     return usage
 
@@ -415,42 +412,36 @@ def insert_usage_data(data_list, filename, service):
 '''
 
 
-def insert_project__table_data(data_list, filename, service):
+def insert_project__table_data(data):
     project = dict()
     try:
-        data_count = 0
-        total_count = 0
-        log.info('---- Starting to Add/Update Project Name -----')
-        for data in data_list:
-            total_count += 1
 
-            '''
-                update the Project table with project_name with data['projectName']
-                if there else use data['projectId'] if there else add as support
-            '''
-            if 'projectNumber' in data:
-                project_id = 'ID-' + str(data['projectNumber'])
-                if 'projectName' in data:
-                    insert_done = insert_project_data(project_id, data['projectName'])
-                else:
-                    insert_done = insert_project_data(project_id, project_id)
-
+        '''
+            update the Project table with project_name with data['projectName']
+            if there else use data['projectId'] if there else add as support
+        '''
+        if 'projectNumber' in data:
+            project_id = 'ID-' + str(data['projectNumber'])
+            if 'projectName' in data:
+                insert_done = insert_project_data(project_id, data['projectName'])
             else:
-                project_id = 'Not Available'
-                insert_done = insert_project_data(project_id, 'support')
+                insert_done = insert_project_data(project_id, project_id)
 
-            if not insert_done:
-                log.info(data)
-                continue
-            else:
-                data_count += 1
+        else:
+            project_id = 'Not Available'
+            insert_done = insert_project_data(project_id, 'support')
+
+        if not insert_done:
+            log.info(data)
+            raise Exception("DB Error: Information not stored")
+
 
         project = dict(message=' data has been added to db')
-        log.info(
-            'DONE adding {0} items out of {1} for file -- {2} into the db '.format(data_count, total_count, filename))
+
     except Exception as e:
         log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
         db_session.rollback()
+        traceback.print_exc()
 
     return project
 
@@ -479,6 +470,8 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
         log.error(
             ' ------------- ERROR IN ADDING USAGE DATA TO THE DB ------------- {0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(
                 usage_date, cost, project_id, resource_type, usage_value))
+        traceback.print_exc()
+
     return done
 
 
