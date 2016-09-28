@@ -22,7 +22,7 @@
 
     </div>
     <div class="col-md-6" style="margin-top: -27px">
-        <h3 class="pull-right add-padding"><a ng-href="{{ centerURL('all') }}">Overall
+        <h3 class="pull-right add-padding"><a ng-href="{{ centerURL('all', monthSelected) }}">Overall
             Cost</a>:${{ totalCost | number:2}} </h3>
 
     </div>
@@ -52,7 +52,7 @@
                 <tbody>
                 <tr ng-repeat="cost_center in costCenterList"  ng-hide="isSupport(cost_center)">
                     <td class="text-info cost_center">
-                        <a ng-href="{{ centerURL(cost_center.id) }}">{{ cost_center.id }}</a>
+                        <a ng-href="{{ centerURL(cost_center.id, monthSelected) }}">{{ cost_center.id }}</a>
                     </td>
                     <td class="text-info cost_center">
                         {{ cost_center.directorName }}

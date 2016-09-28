@@ -128,6 +128,17 @@ billingService.factory('UsageCost', ['$http', '$timeout', '$q', '$log' , functio
         deferred.reject("error");
       });
       return deferred.promise;
+    },
+    getMonthlyProjectBillingPerCenter: function(center, span_value){
+      if (span_value == null){
+        var dt = new Date();
+        var monthSelected = dt.getFullYear().toString().substr(2, 2) + '-' + (dt.getMonth() + 1);
+        span_value = monthSelected;
+      }
+
+      var url = 'cost_center/#?' + '&span=month&span_value=' + span_value + '&view_by=month&cost_center=' + center + '&project=all' + '&resource=all';
+
+      return url;
     }
 
   };

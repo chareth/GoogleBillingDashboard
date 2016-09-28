@@ -109,10 +109,12 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
 
     };
 
-    $scope.centerURL = function (center) {
-      var url = 'cost_center/#?' + '&span=month&span_value=' + $scope.monthSelected + '&view_by=month&cost_center=' + center + '&project=all' + '&resource=all';
-      return url;
-    };
+    $scope.centerURL = UsageCost.getMonthlyProjectBillingPerCenter;
+
+    // function (center, span_value) {
+    //   var url = 'cost_center/#?' + '&span=month&span_value=' + span_value + '&view_by=month&cost_center=' + center + '&project=all' + '&resource=all';
+    //   return url;
+    // };
 
     $scope.getBillingData = function () {
 
@@ -176,4 +178,3 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
     init();
 
   }]);
-

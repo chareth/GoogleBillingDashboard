@@ -11,14 +11,27 @@
                         <thead>
                         <th class="bg-warning text-center">Director</th>
                         <th class="bg-warning text-center">Cost for current month</th>
+                        <th class="bg-warning text-center">Total Budget</th>
+                        <th class="bg-warning text-center">Budget Used</th>
                         </thead>
                         <tbody>
                         <tr ng-repeat="cost_center in costCenterList">
                             <td class="text-info cost_center">
                                 <a ng-href="{{ centerURL(cost_center.id) }}">{{ cost_center.name }}</a>
                             </td>
-                            <td class="text-info" align="right">
-                                ${{ cost_center.cost | number:2 }}
+                            <td class="text-info" align="right">${{ cost_center.cost | number:2 }}</td>
+                            <td class="text-info" align="right" ng-if="cost_center.total_budget">
+                              {{cost_center.total_budget | currency}}
+                            </td>
+                            <td class="text-info" align="right" ng-if="!cost_center.total_budget" style="color:grey;"
+                              uib-tooltip="Missing budgets for projects" tooltip-append-to-body="true">N/A</td>
+                              <td class="text-info" align="right" ng-if="cost_center.percentage">
+                                <a ng-href="{{ getMonthlyProjectBillingPerCenter(cost_center.name) }}">{{cost_center.percentage | number : 2}} %</a>
+
+                              </td>
+                              <td class="text-info" align="right" ng-if="!cost_center.percentage" style="color:grey;"
+                              uib-tooltip="Total budget required to calculate percentage" tooltip-append-to-body="true">
+                                <a ng-href="{{ getMonthlyProjectBillingPerCenter(cost_center.name) }}">N/A</a>
                             </td>
                         </tr>
                         </tbody>

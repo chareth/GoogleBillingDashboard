@@ -54,6 +54,8 @@ cuProjectsControllers.controller('CostCenterController', ['$scope', '$location' 
       return url;
     };
 
+    $scope.getMonthlyProjectBillingPerCenter = UsageCost.getMonthlyProjectBillingPerCenter;
+
     init();
 
   }]);
@@ -105,7 +107,7 @@ cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , 
         $scope.add_project = false;
 
       } else {
-        $scope.projectInfo = {'project_id': '', 'project_name': '', 'director': '', 'cost_center': '', 'director_email': '', 'contact_name': '', 'contact_email': '', 'alert_amount': ''};
+        $scope.projectInfo = {'project_id': '', 'project_name': '', 'director': '', 'cost_center': '', 'director_email': '', 'contact_name': '', 'contact_email': '', 'alert_amount': '', 'monthly_budget': ''};
         $scope.add_project = true;
       }
 

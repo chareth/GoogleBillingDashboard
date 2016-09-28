@@ -8,7 +8,8 @@ from flask.templating import render_template
 from flask.wrappers import Response
 
 import json
-from apps.billing.billingData import get_project_list_data, get_center_list, \
+import traceback
+from apps.billing.billingData import get_project_list_data, get_center_list,\
     get_costs_per_center_year, \
     get_costs_per_project_year, get_costs_per_resource, get_costs_per_resource_per_project, \
     get_costs_per_resource_all_project_per_day, log, table_create, \
@@ -19,7 +20,7 @@ from apps.billing.billingData import get_project_list_data, get_center_list, \
     get_costs_per_resource_week_center, get_costs_per_resource_per_project_per_day_week, \
     get_costs_per_resource_all_project_per_day_week, get_costs_per_center_year_quarter, \
     get_costs_per_resource_quarter_center, get_costs_per_resource_all_project_per_day_quarter, \
-    get_costs_per_resource_per_project_per_day_quarter, project_list_per_center
+    get_costs_per_resource_per_project_per_day_quarter, project_list_per_center, get_billing_data_per_year_month
 
 from apps.config.apps_config import log, QUOTA_VIEW, SCHEDULER_HOUR, SCHEDULER_MIN,USAGE_VIEW
 from apps.billing.dataProcessor import set_scheduler, run_scheduler, set_scheduler_initial
@@ -294,9 +295,30 @@ def get_costs(year):
         resp = Response(response=json.dumps(data),
                         status=500,
                         mimetype="application/json")
+        traceback.print_exc()
 
     return resp
 
+@mod.route('/usage', methods=['GET'])
+def get_billing_data_per_project_month():
+    month = request.args.get('month', None)
+    result = []
+
+
+    data = get_billing_data_per_year_month(2016, month, 'month' ).all()
+    if month != None:
+        for item in data:
+            project_obj = get_project_by_id(item[0])[0]
+            result.append({
+                'project':project_obj.project_name,
+                'cost':item[1],
+                'budget':str(project_obj.alert_amount)
+            })
+
+    resp = Response(response=json.dumps(result), status=200, mimetype='application/json')
+
+
+    return resp
 
 def month_converter(month):
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -372,7 +394,7 @@ def get_cost_center_list():
                 director_email = project['director_email'].lower()
                 contact_name = project['contact_name'].lower()
                 contact_email = project['contact_email'].lower()
-                alert_amount = 0  # project['alert_amount'].lower()
+                alert_amount =project['alert_amount']
 
                 if not director.strip():
                     director = None
@@ -382,10 +404,8 @@ def get_cost_center_list():
                     contact_email = None
                 if not director_email.strip():
                     director_email = None
-                '''
-                    if not alert_amount.strip():
-                       alert_amount = 'None'
-                '''
+                if not alert_amount.strip():
+                    alert_amount = None
 
                 '''
                     Check if project already in the table

@@ -4,7 +4,9 @@ __version__ = "1.0"
 __doc__ = "Data Layer that is used by view and this makes call to the billingDBQuery"
 
 import time, json
+from decimal import Decimal
 from datetime import date, timedelta
+import traceback
 from apps.config.apps_config import log_error, log_output, log
 from apps.billing.billingDBQuery import get_distinct_projects, get_resource_list_per_project, get_billing_data_per_year, \
     get_billing_data_per_year_per_center, get_billing_data_per_project_year, get_billing_data_per_resource, \
@@ -55,6 +57,7 @@ def get_project_list_data():
         log_error(e[0])
         status = 500
         project_list['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=project_names, status=status)
 
@@ -95,6 +98,7 @@ def project_list_per_center(center):
         project_list_local = project_list_center_arr
     except Exception as e:
         status = 500
+        traceback.print_exc()
 
     return {'list': project_list_local, 'ids': project_list_center_arr_id, 'data': project_list_center_arr,
             'status': status}
@@ -228,7 +232,7 @@ def get_per_day_data(query_data):
     d3_json = [{'key': 'Cost', 'values': [], 'bar': True}, {'key': 'Usage', 'values': []}]
     for (timestamp, cost, use, unit) in query_data:
         value = []
-        date = time.strftime("%D", time.localtime(int(timestamp)))
+        date = time.strftime("%x", time.localtime(int(timestamp)))
         value.append(date)
         value.append(float(cost))
         value.append('$')
@@ -325,6 +329,7 @@ def get_costs_year(year, output_type):
         log_error(e[0])
         status = 500
         data['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=data, status=status)
 
@@ -384,6 +389,7 @@ def get_costs_per_center_year(year, center, output_type):
         log_error(e[0])
         status = 500
         data['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=data, status=status)
 
@@ -433,6 +439,7 @@ def get_costs_per_project_year(year, center, project, output_type):
         log_error(e[0])
         status = 500
         data_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=data_json, status=status)
 
@@ -484,6 +491,7 @@ def get_costs_per_resource_per_project(year, center, project, resource, output_t
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=resource_json, status=status)
 
@@ -535,6 +543,7 @@ def get_costs_per_resource(year, center, resource, output_type):
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=resource_json, status=status)
 
@@ -585,8 +594,11 @@ def get_costs_per_cost_month(year, value_to_match, output_type):
                         new_dict[cost_center]['project'].append(str(project))
                         new_dict[cost_center]['cost'] += cost
 
+            get_total_budgets(new_dict, cost_center_list)
+
             for key, value in new_dict.items():
-                each_month = dict(name=value['director'], cost=value['cost'], id=key)
+                each_month = dict(name=value['director'], cost=value['cost'], id=key, \
+                    total_budget=value['total_budget'], percentage=value['percentage'])
                 month_data.append(each_month)
 
         month_json['usage_data'] = month_data
@@ -600,10 +612,33 @@ def get_costs_per_cost_month(year, value_to_match, output_type):
         log_error(e[0])
         status = 500
         month_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=month_json, status=status)
 
     return response
+
+
+'''
+    for summing the toal budget for each cost center and
+    calculating percentage of budget used
+    only give total if every project has a budget
+'''
+
+def get_total_budgets(data, projectsTable):
+    for cost_center in data:
+        filtered_projects = filter(lambda x: x['project_id'] in data[cost_center]['project'], projectsTable)
+        alert_amounts = [Decimal(x['alert_amount']) for x in filtered_projects]
+
+        # if all projects have an alert_amount then sum them up
+        if all(map(lambda x: not(x['alert_amount'] == 0 or x['alert_amount'] == '' or x['alert_amount'] == None), filtered_projects)):
+            data[cost_center]['total_budget'] = str(reduce(lambda x, y: x + y, alert_amounts))
+            data[cost_center]['percentage'] = data[cost_center]['cost'] / float(data[cost_center]['total_budget']) * 100
+        else :
+            data[cost_center]['total_budget'] = ""
+            data[cost_center]['percentage'] = ""
+
+
 
 
 '''
@@ -677,6 +712,7 @@ def get_costs_per_center_month(year, month, center, output_type):
         log_error(e[0])
         status = 500
         center_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=center_json, status=status)
 
@@ -735,6 +771,7 @@ def get_costs_per_center_week(year, week, center, output_type):
         log_error(e[0])
         status = 500
         center_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=center_json, status=status)
 
@@ -793,6 +830,7 @@ def get_costs_per_resource_month_center(year, value_to_match, center, project, o
         log_error(e[0])
         status = 500
         project_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=project_json, status=status)
 
@@ -855,6 +893,7 @@ def get_costs_per_resource_quarter_center(year, quarter, center, project, output
         log_error(e[0])
         status = 500
         project_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=project_json, status=status)
 
@@ -905,6 +944,7 @@ def get_costs_per_resource_week_center(year, week, center, project, output_type)
         log_error(e[0])
         status = 500
         project_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=project_json, status=status)
 
@@ -933,8 +973,8 @@ def get_costs_per_resource_per_project_per_day_month(year, value_to_match, cente
         query_data = get_billing_data_per_resource_per_project_per_month(str(year), str(value_to_match),
                                                                          str(project),
                                                                          str(resource), output_type)
-        log_output(query_data)
-
+        # log_output(query_data)
+        log.info(query_data)
         if output_type == 'month' or output_type == 'day':
             day_data = get_per_day_data(query_data)
 
@@ -951,6 +991,8 @@ def get_costs_per_resource_per_project_per_day_month(year, value_to_match, cente
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
+
 
     response = dict(data=resource_json, status=status)
 
@@ -1000,6 +1042,7 @@ def get_costs_per_resource_per_project_per_day_quarter(year, value_to_match, cen
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=resource_json, status=status)
 
@@ -1047,6 +1090,7 @@ def get_costs_per_resource_per_project_per_day_week(year, value_to_match, center
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=resource_json, status=status)
 
@@ -1090,6 +1134,7 @@ def get_costs_per_resource_all_project_per_day(year, value_to_match, center, res
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=resource_json, status=status)
 
@@ -1139,6 +1184,7 @@ def get_costs_per_resource_all_project_per_day_quarter(year, value_to_match, cen
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=resource_json, status=status)
 
@@ -1182,6 +1228,7 @@ def get_costs_per_resource_all_project_per_day_week(year, week, center, resource
         log_error(e[0])
         status = 500
         resource_json['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=resource_json, status=status)
 
@@ -1212,7 +1259,6 @@ def get_center_list(unique):
             cost_center_list.append('other')
     else:
         cost_center_list = set_global_cost_center_list()
-
     return cost_center_list
 
 
@@ -1258,6 +1304,7 @@ def get_costs_per_center_year_quarter(year, quarter, center, output_type):
         log_error(e[0])
         status = 500
         data['message'] = str(e[0])
+        traceback.print_exc()
 
     response = dict(data=data, status=status)
 
@@ -1290,4 +1337,3 @@ def create_project_data(cost_center, project_id, project_name, director, directo
 
 def delete_project_by_id(project_id):
     return delete_project(project_id)
-

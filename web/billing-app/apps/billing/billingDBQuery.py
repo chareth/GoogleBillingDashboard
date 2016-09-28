@@ -752,7 +752,7 @@ def set_global_cost_center_list():
         project['director_email'] = '' if center_data['director_email'] is None else center_data['director_email']
         project['contact_name'] = '' if center_data['contact_name'] is None else center_data['contact_name']
         project['contact_email'] = '' if center_data['contact_email'] is None else center_data['contact_email']
-        project['alert_amount'] = '' if center_data['alert_amount'] == 0 else center_data['alert_amount']
+        project['alert_amount'] = 0 if center.alert_amount == 0 else str(center.alert_amount)
 
         project_unique_ids.append(center_data['project_id'])
 
@@ -767,4 +767,3 @@ def set_global_cost_center_list():
                      director_email='', contact_name='', contact_email='', alert_amount=''))
 
     return cost_center_list
-

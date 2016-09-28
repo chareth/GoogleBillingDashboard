@@ -28,7 +28,7 @@ class Project(Base):
     director_email = Column(String(100))
     contact_name = Column(String(100))
     contact_email = Column(String(100))
-    alert_amount = Column(FLOAT)
+    alert_amount = Column(DECIMAL(12,2))
 
     def __init__(self, cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
                  alert_amount):
