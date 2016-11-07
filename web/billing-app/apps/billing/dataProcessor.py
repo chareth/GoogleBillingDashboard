@@ -14,15 +14,16 @@ For more information, see the README.md under /storage.
 import json
 from apiclient import discovery
 from oauth2client.client import GoogleCredentials
-from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session
+from apps.config.apps_config import BUCKET_NAME, ARCHIVE_BUCKET_NAME, log, db_session, USAGE_VIEW
 import datetime
 from apps.billing.models import Billing, Project
 from apps.usage.usageData import data_processor as usage_processor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 import binascii
+import traceback
 
 scheduler = BackgroundScheduler()
 
@@ -33,7 +34,8 @@ def run_scheduler():
     scheduler.remove_all_jobs()
     scheduler.print_jobs()
     scheduler.add_job(data_processor, id='data_processor', args=['now'])
-    scheduler.add_job(usage_processor, id='usage_data_processor', args=['now'])
+    if USAGE_VIEW == True :
+        scheduler.add_job(usage_processor, id='usage_data_processor', args=['now'])
     log.info('------ Jobs List -----')
     scheduler.print_jobs()
     return scheduler
@@ -47,7 +49,8 @@ def set_scheduler(hour, min):
     scheduler.add_job(data_processor, 'cron', hour=get_time(hour, min)['hour'],
                       minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
                       id='data_processor', args=['cron'])
-    scheduler.add_job(usage_processor, 'cron', hour=get_time(hour, min)['hour'],
+    if USAGE_VIEW == True:
+        scheduler.add_job(usage_processor, 'cron', hour=get_time(hour, min)['hour'],
                       minute=get_time(hour, min)['mins'], second=get_time(hour, min)['sec'],
                       id='usage_data_processor', args=['cron'])
     log.info('------ SCHEDULER INIT -----')
@@ -382,20 +385,15 @@ def insert_usage_data(data_list, filename, service):
                                           measurement_unit)
                 if not insert_done:
                     log.info(data)
-                    continue
+                    raise Exception("information not inserted; DB Error")
                 else:
                     data_count += 1
 
-            if 'projectNumber' in data:
-                project_id = 'ID-' + str(data['projectNumber'])
-                if 'projectName' in data:
-                    project_insert_done = insert_project_data(project_id, data['projectName'])
-                else:
-                    project_insert_done = insert_project_data(project_id, project_id)
+            project_update = insert_project__table_data(data)
 
-            else:
-                project_id = 'Not Available'
-                project_insert_done = insert_project_data(project_id, 'support')
+            if not project_update:
+                log.info(data)
+                raise Exception("information not inserted; DB Error")
 
         usage = dict(message=' data has been added to db')
         log.info(
@@ -403,6 +401,7 @@ def insert_usage_data(data_list, filename, service):
     except Exception as e:
         log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
         db_session.rollback()
+        traceback.print_exc()
 
     return usage
 
@@ -413,42 +412,36 @@ def insert_usage_data(data_list, filename, service):
 '''
 
 
-def insert_project__table_data(data_list, filename, service):
+def insert_project__table_data(data):
     project = dict()
     try:
-        data_count = 0
-        total_count = 0
-        log.info('---- Starting to Add/Update Project Name -----')
-        for data in data_list:
-            total_count += 1
 
-            '''
-                update the Project table with project_name with data['projectName']
-                if there else use data['projectId'] if there else add as support
-            '''
-            if 'projectNumber' in data:
-                project_id = 'ID-' + str(data['projectNumber'])
-                if 'projectName' in data:
-                    insert_done = insert_project_data(project_id, data['projectName'])
-                else:
-                    insert_done = insert_project_data(project_id, project_id)
-
+        '''
+            update the Project table with project_name with data['projectName']
+            if there else use data['projectId'] if there else add as support
+        '''
+        if 'projectNumber' in data:
+            project_id = 'ID-' + str(data['projectNumber'])
+            if 'projectName' in data:
+                insert_done = insert_project_data(project_id, data['projectName'])
             else:
-                project_id = 'Not Available'
-                insert_done = insert_project_data(project_id, 'support')
+                insert_done = insert_project_data(project_id, project_id)
 
-            if not insert_done:
-                log.info(data)
-                continue
-            else:
-                data_count += 1
+        else:
+            project_id = 'Not Available'
+            insert_done = insert_project_data(project_id, 'support')
+
+        if not insert_done:
+            log.info(data)
+            raise Exception("DB Error: Information not stored")
+
 
         project = dict(message=' data has been added to db')
-        log.info(
-            'DONE adding {0} items out of {1} for file -- {2} into the db '.format(data_count, total_count, filename))
+
     except Exception as e:
         log.error('Error in inserting data into the DB -- {0}'.format(e[0]))
         db_session.rollback()
+        traceback.print_exc()
 
     return project
 
@@ -471,13 +464,14 @@ def insert_data(usage_date, cost, project_id, resource_type, account_id, usage_v
         usage.usage_value = usage_value
         usage.measurement_unit = measurement_unit
         db_session.commit()
-
         done = True
     except Exception as e:
         log.error(' ------------- ERROR IN ADDING USAGE DATA TO THE DB ------------- {0}'.format(e[0]))
         log.error(
             ' ------------- ERROR IN ADDING USAGE DATA TO THE DB ------------- {0}<---->{1}<----->{2}<------>{3}<------>{4}'.format(
                 usage_date, cost, project_id, resource_type, usage_value))
+        traceback.print_exc()
+
     return done
 
 

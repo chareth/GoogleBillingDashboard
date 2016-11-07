@@ -22,7 +22,7 @@ SQLALCHEMY_DATABASE_URI = 'mysql://' + os.environ.get('MYSQL_USER') + ':' + os.e
 
 log = logging.getLogger()
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI, poolclass=NullPool)
+engine = create_engine(SQLALCHEMY_DATABASE_URI, poolclass=NullPool, pool_recycle=1800)
 
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
