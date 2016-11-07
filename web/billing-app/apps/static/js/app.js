@@ -23,7 +23,7 @@ if (document.URL.indexOf('billing') != -1) {
     'loginService',
     'cuBillingControllers',
     'cuProjectsControllers',
-    'cuDirectorsControllers',
+    'cuOwnersControllers',
     'billingService',
     'exportImportController',
     'cuFilters'
@@ -38,7 +38,7 @@ if (document.URL.indexOf('billing') != -1) {
     'cuControllers',
     'loginService',
     'cuQuotaControllers',
-    'cuDirectorsControllers',
+    'cuOwnersControllers',
     'quotaService',
     'billingService',
     'cuFilters'

@@ -68,13 +68,13 @@ def get_project(project_id):
 '''
 
 
-def update_project(cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+def update_project(cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                    alert_amount):
     project = Project.query.filter_by(project_id=project_id).first()
     project.cost_center = cost_center
     project.project_name = project_name
-    project.director = director
-    project.director_email = director_email
+    project.owner = owner
+    project.owner_email = owner_email
     project.contact_name = contact_name
     project.contact_email = contact_email
     project.alert_amount = alert_amount
@@ -90,9 +90,9 @@ def update_project(cost_center, project_id, project_name, director, director_ema
 '''
 
 
-def create_project(cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+def create_project(cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                    alert_amount):
-    project = Project(cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+    project = Project(cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                       alert_amount)
     db_session.add(project)
     db_session.commit()
@@ -748,8 +748,8 @@ def set_global_cost_center_list():
         project['cost_center'] = center_data['cost_center']
         project['project_id'] = center_data['project_id']
         project['project_name'] = center_data['project_name']
-        project['director'] = '' if center_data['director'] is None else center_data['director']
-        project['director_email'] = '' if center_data['director_email'] is None else center_data['director_email']
+        project['owner'] = '' if center_data['owner'] is None else center_data['owner']
+        project['owner_email'] = '' if center_data['owner_email'] is None else center_data['owner_email']
         project['contact_name'] = '' if center_data['contact_name'] is None else center_data['contact_name']
         project['contact_email'] = '' if center_data['contact_email'] is None else center_data['contact_email']
         project['alert_amount'] = '' if center_data['alert_amount'] == 0 else center_data['alert_amount']
@@ -763,8 +763,7 @@ def set_global_cost_center_list():
     for project in project_list:
         if project[0] not in project_unique_ids:
             cost_center_list.append(
-                dict(cost_center='other', project_id=project[0], project_name=project[0], director='other',
-                     director_email='', contact_name='', contact_email='', alert_amount=''))
+                dict(cost_center='other', project_id=project[0], project_name=project[0], owner='other',
+                     owner_email='', contact_name='', contact_email='', alert_amount=''))
 
     return cost_center_list
-
