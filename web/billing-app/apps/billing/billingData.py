@@ -575,18 +575,18 @@ def get_costs_per_cost_month(year, value_to_match, output_type):
                 for project_info in cost_center_list:
                     cost_center = str(project_info['cost_center'])
                     project_id = str(project_info['project_id'])
-                    director = str(project_info['director'])
+                    owner = str(project_info['owner'])
 
                     if project == project_id:
                         new_dict[cost_center] = new_dict.get(cost_center, {})
-                        new_dict[cost_center]['director'] = director
+                        new_dict[cost_center]['owner'] = owner
                         new_dict[cost_center]['cost'] = new_dict[cost_center].get('cost', 0.0)
                         new_dict[cost_center]['project'] = new_dict[cost_center].get('project', [])
                         new_dict[cost_center]['project'].append(str(project))
                         new_dict[cost_center]['cost'] += cost
 
             for key, value in new_dict.items():
-                each_month = dict(name=value['director'], cost=value['cost'], id=key)
+                each_month = dict(name=value['owner'], cost=value['cost'], id=key)
                 month_data.append(each_month)
 
         month_json['usage_data'] = month_data
@@ -1272,22 +1272,21 @@ def get_project_by_id(project_id):
     return get_project(project_id)
 
 
-def update_project_data(cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+def update_project_data(cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                         alert_amount):
     if alert_amount == 'none':
         alert_amount = 0
-    return update_project(cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+    return update_project(cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                           alert_amount)
 
 
-def create_project_data(cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+def create_project_data(cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                         alert_amount):
     if alert_amount == 'none':
         alert_amount = 0
-    return create_project(cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+    return create_project(cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                           alert_amount)
 
 
 def delete_project_by_id(project_id):
     return delete_project(project_id)
-

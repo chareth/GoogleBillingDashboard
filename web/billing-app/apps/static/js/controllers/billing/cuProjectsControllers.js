@@ -73,7 +73,7 @@ cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , 
       $scope.project_id = '';
       $scope.project_name = '';
       $scope.cost_center = '';
-      $scope.director = '';
+      $scope.owner = '';
 
     };
     $scope.getCostCenterList = function () {
@@ -105,7 +105,7 @@ cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , 
         $scope.add_project = false;
 
       } else {
-        $scope.projectInfo = {'project_id': '', 'project_name': '', 'director': '', 'cost_center': '', 'director_email': '', 'contact_name': '', 'contact_email': '', 'alert_amount': ''};
+        $scope.projectInfo = {'project_id': '', 'project_name': '', 'owner': '', 'cost_center': '', 'owner_email': '', 'contact_name': '', 'contact_email': '', 'alert_amount': ''};
         $scope.add_project = true;
       }
 
@@ -123,8 +123,8 @@ cuProjectsControllers.controller('ProjectsController', ['$scope', '$location' , 
       $log.debug('Close --', $scope.projectInfo);
 
       $scope.projectInfo = {'project_id': '',
-        'project_name': '', 'director': '',
-        'cost_center': '', 'director_email': '',
+        'project_name': '', 'owner': '',
+        'cost_center': '', 'owner_email': '',
         'contact_name': '', 'contact_email': '',
         'alert_amount': ''};
     };

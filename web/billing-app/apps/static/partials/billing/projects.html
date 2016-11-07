@@ -84,41 +84,41 @@
             </div>
 
         </div>
-        <!-- Director Name-->
+        <!-- Owner Name-->
         <div class="form-group"
-             ng-class="{ 'has-error' : projectForm.director.$invalid && !projectForm.director.$pristine }">
-            <label class="col-md-2 text-right clear add-padding">Director</label>
+             ng-class="{ 'has-error' : projectForm.owner.$invalid && !projectForm.owner.$pristine }">
+            <label class="col-md-2 text-right clear add-padding">Owner</label>
 
             <div class="col-md-2 mB-10">
-                <input value="" name="director" class="form-control" ng-model="projectInfo.director"
-                       placeholder="Enter a Director Name"
+                <input value="" name="owner" class="form-control" ng-model="projectInfo.owner"
+                       placeholder="Enter an Owner Name"
                        >
 
-                <!--p ng-show="projectForm.director.$invalid && !projectForm.director.$pristine"
+                <!--p ng-show="projectForm.owner.$invalid && !projectForm.owner.$pristine"
                    class="help-block">
-                    Director Name
+                    Owner Name
                     is
                     required.</p-->
             </div>
 
         </div>
-        <!-- Director Email-->
+        <!-- Owner Email-->
         <div class="form-group"
-             ng-class="{ 'has-error' : ( projectForm.director_email.$error.email && projectInfo.director_email != '') }">
-            <label class="col-md-2 text-right add-padding">Director Email</label>
+             ng-class="{ 'has-error' : ( projectForm.owner_email.$error.email && projectInfo.owner_email != '') }">
+            <label class="col-md-2 text-right add-padding">Owner Email</label>
 
             <div class="col-md-2 mB-10">
-                <input value="" name="director_email" class="form-control" ng-model="projectInfo.director_email"
-                       placeholder="Enter a Director Email" type="email"
+                <input value="" name="owner_email" class="form-control" ng-model="projectInfo.owner_email"
+                       placeholder="Enter a owner Email" type="email"
                        >
 
-                <!--p ng-show="projectForm.director_email.$invalid && !projectForm.director_email.$pristine"
+                <!--p ng-show="projectForm.owner_email.$invalid && !projectForm.owner_email.$pristine"
                    class="help-block">
-                    Director Email
+                    Owner Email
                     is
                     required.</p-->
 
-                <p ng-show="(projectForm.director_email.$error.email && projectInfo.director_email != '')"
+                <p ng-show="(projectForm.owner_email.$error.email && projectInfo.owner_email != '')"
                    class="help-block">
                    Enter a valid email.</p>
             </div>
@@ -188,7 +188,7 @@
             <div class="col-md-3">
 
                 <button type="submit" class="btn btn-primary btn-block"
-                        ng-disabled="(projectForm.$invalid && projectInfo.contact_email !='--') ||  (projectForm.$invalid && projectInfo.director_email !='--')  || loading">Save
+                        ng-disabled="(projectForm.$invalid && projectInfo.contact_email !='--') ||  (projectForm.$invalid && projectInfo.owner_email !='--')  || loading">Save
                 </button>
             </div>
             <div class="col-md-3">
@@ -206,8 +206,8 @@
         <th class="text-center bg-warning">Project ID</th>
         <th class="text-center bg-warning">Project Name</th>
         <th class="text-center bg-warning">Cost Center</th>
-        <th class="text-center bg-warning">Director</th>
-        <th class="text-center bg-warning">Director Email</th>
+        <th class="text-center bg-warning">Owner</th>
+        <th class="text-center bg-warning">Owner Email</th>
         <th class="text-center bg-warning">Contact Name</th>
         <th class="text-center bg-warning">Contact Email</th>
         <th class="text-center bg-warning">Edit</th>
@@ -227,8 +227,8 @@
             </td>
             <td class="text-center">{{ project.project_name }}</td>
             <td class="text-center">{{ project.cost_center }}</td>
-            <td class="text-center">{{ project.director }}</td>
-            <td class="text-center">{{ project.director_email }}</td>
+            <td class="text-center">{{ project.owner }}</td>
+            <td class="text-center">{{ project.owner_email }}</td>
             <td class="text-center">{{ project.contact_name }}</td>
             <td class="text-center">{{ project.contact_email }}</td>
             <td class="text-center"> <i class="fa fa-pencil text-info" ng-click="addOne(project)"
