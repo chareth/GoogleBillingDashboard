@@ -12,4 +12,4 @@ RUN npm install -g grunt-cli
 RUN npm install
 RUN grunt
 EXPOSE "8080"
-CMD /usr/local/bin/gunicorn wsgi:app -w 5 -b :8080 --error-logfile ./gunicorn.log
+CMD /usr/local/bin/gunicorn wsgi:app -w 5 -b :8080 --log-file=-
