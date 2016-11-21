@@ -55,9 +55,9 @@ def projects_cost_center():
 
 
 # route handles for /admin and /admin/page
-@mod.route('/director')
-def director_level_billing():
-    url = 'billing/director_billing.html'
+@mod.route('/owner')
+def owner_level_billing():
+    url = 'billing/owner_billing.html'
     return render_template(url, quota_flag=QUOTA_VIEW, usage_flag=USAGE_VIEW, title="Cloud Admin Tool")
 
 
@@ -340,10 +340,10 @@ def month_converter(month):
                 json:
                 {
                     "projects" :[
-                    {"project_id":"ID-12345","project_name":"lab","cost_center":"Aurora","director":""},
-                    {"project_id":"ID-123456","project_name":"demo","cost_center":"Aurora","director":""},
-                    {"project_id":"ID-1234567","project_name":"dev","cost_center":"Aurora","director":""},
-                    {"project_id":"ID-12345678","project_name":"prod","cost_center":"Aurora","director":""}
+                    {"project_id":"ID-12345","project_name":"lab","cost_center":"Aurora","owner":""},
+                    {"project_id":"ID-123456","project_name":"demo","cost_center":"Aurora","owner":""},
+                    {"project_id":"ID-1234567","project_name":"dev","cost_center":"Aurora","owner":""},
+                    {"project_id":"ID-12345678","project_name":"prod","cost_center":"Aurora","owner":""}
                     ]
 
                 }
@@ -390,20 +390,21 @@ def get_cost_center_list():
                 project_id = project['project_id']
                 project_name = project['project_name'].lower()
                 cost_center = project['cost_center'].lower()
-                director = project['director'].lower()
-                director_email = project['director_email'].lower()
+                # TODO: DB column names
+                owner = project['owner'].lower()
+                owner_email = project['owner_email'].lower()
                 contact_name = project['contact_name'].lower()
                 contact_email = project['contact_email'].lower()
                 alert_amount =project['alert_amount']
 
-                if not director.strip():
-                    director = None
+                if not owner.strip():
+                    owner = None
                 if not contact_name.strip():
                     contact_name = None
                 if not contact_email.strip():
                     contact_email = None
-                if not director_email.strip():
-                    director_email = None
+                if not owner_email.strip():
+                    owner_email = None
                 if not alert_amount.strip():
                     alert_amount = None
 
@@ -414,12 +415,12 @@ def get_cost_center_list():
 
                 if len(query_data) > 0:
                     log.info('DATA IN TABLE - SO UPDATE')
-                    query_data = update_project_data(cost_center, project_id, project_name, director, director_email,
+                    query_data = update_project_data(cost_center, project_id, project_name, owner, owner_email,
                                                      contact_name, contact_email, alert_amount)
 
                 else:
                     log.info('DATA NOT IN TABLE - SO INSERT')
-                    query_data = create_project_data(cost_center, project_id, project_name, director, director_email,
+                    query_data = create_project_data(cost_center, project_id, project_name, owner, owner_email,
                                                      contact_name, contact_email, alert_amount)
 
             status = 200

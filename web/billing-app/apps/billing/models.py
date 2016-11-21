@@ -14,7 +14,7 @@ from sqlalchemy.sql.sqltypes import Integer, String, DATETIME, FLOAT, DECIMAL
 
 '''
    Models :
-     Projects Table with : ID, cost_center, project_id,project_name,director
+     Projects Table with : ID, cost_center, project_id,project_name,owner
 '''
 
 
@@ -24,26 +24,26 @@ class Project(Base):
     cost_center = Column(String(100))
     project_id = Column(String(16))
     project_name = Column(String(100))
-    director = Column(String(100))
-    director_email = Column(String(100))
+    owner = Column(String(100))
+    owner_email = Column(String(100))
     contact_name = Column(String(100))
     contact_email = Column(String(100))
     alert_amount = Column(DECIMAL(12,2))
 
-    def __init__(self, cost_center, project_id, project_name, director, director_email, contact_name, contact_email,
+    def __init__(self, cost_center, project_id, project_name, owner, owner_email, contact_name, contact_email,
                  alert_amount):
         self.cost_center = cost_center
         self.project_id = project_id
         self.project_name = project_name
-        self.director = director
-        self.director_email = director_email
+        self.owner = owner
+        self.owner_email = owner_email
         self.contact_name = contact_name
         self.contact_email = contact_email
         self.alert_amount = alert_amount
 
     def __repr__(self):
         return '<Project %r %r %r %r %r %r %r %r>' % (
-            self.cost_center, self.project_id, self.project_name, self.director, self.director_email, self.contact_name,
+            self.cost_center, self.project_id, self.project_name, self.owner, self.owner_email, self.contact_name,
             self.contact_email, self.alert_amount)
 
 

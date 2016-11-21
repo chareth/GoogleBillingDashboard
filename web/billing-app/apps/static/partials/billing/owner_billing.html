@@ -1,4 +1,4 @@
-<div ng-controller="DirectorController">
+<div ng-controller="OwnerController">
 
 
     <hr class="clear">
@@ -30,7 +30,7 @@
     <hr class="clear">
     <div class="pull-right add-padding">
         <a ng-controller="exportController" id='export' class="btn btn-success pull-right"
-           ng-click="export(costCenterList,'DirectorLevelBilling-'+monthSelected )"
+           ng-click="export(costCenterList,'OwnerLevelBilling-'+monthSelected )"
            ng-disabled="!costCenterList.length">Export Table to
             Excel
         </a>
@@ -43,7 +43,7 @@
             <table class="table table-stripped table-bordered" ng-show="costCenterList.length">
                 <thead>
                 <th class="bg-warning text-center">Cost Center</th>
-                <th class="bg-warning text-center">Director</th>
+                <th class="bg-warning text-center">Owner</th>
                 <th class="bg-warning text-center">Cost for Selected Month</th>
                 <th class="bg-warning text-center">Percentage of Total</th>
                 <th class="bg-warning text-center">Support Amount</th>
@@ -55,7 +55,7 @@
                         <a ng-href="{{ centerURL(cost_center.id, monthSelected) }}">{{ cost_center.id }}</a>
                     </td>
                     <td class="text-info cost_center">
-                        {{ cost_center.directorName }}
+                        {{ cost_center.ownerName }}
                     </td>
                     <td class="text-info" align="right">
                         ${{ cost_center.cost | number:2 }}
@@ -73,7 +73,7 @@
                 <tr class="bg-warning text-right ">
                     <td><strong>Total</strong></td>
                     <td></td>
-                    <td><strong>${{totalDirectorCost | number:2 }}</strong></td>
+                    <td><strong>${{totalOwnerCost | number:2 }}</strong></td>
                     <td></td>
                     <td><strong>${{supportTotal | number:2 }}</strong></td>
                     <td><strong>${{totalToPay | number:2 }}</strong></td>

@@ -2,13 +2,13 @@
 
 /* Controllers */
 
-var cuDirectorsControllers = angular.module('cuDirectorsControllers', []);
+var cuOwnersControllers = angular.module('cuOwnersControllers', []);
 
 
 /*
  * Controller for Billing per Cost Center View page
  * */
-cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' , '$cookies',
+cuOwnersControllers.controller('OwnerController', ['$scope', '$location' , '$cookies',
   'UsageCost', '$log', '$sce', '$filter',
   function ($scope, $location, $cookies, UsageCost, $log, $sce, $filter) {
     var init = function () {
@@ -16,7 +16,7 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
       $scope.fail = false;
       $scope.loading = true;
       $scope.totalCost = 0;
-      $scope.totalDirectorCost = 0;
+      $scope.totalOwnerCost = 0;
       $scope.totalPercent = 0;
       $scope.supportTotal = 0;
       $scope.totalToPay = 0;
@@ -48,8 +48,8 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
      *  -- calculate the overall cost
      *  -- calculate the support cost
      *  -- calculate the cost without support
-     *    -- this is used to calculate the support cost each director should pay
-     *  -- once all %usage and support cost per director is calculated remove the support cost from the list
+     *    -- this is used to calculate the support cost each owner should pay
+     *  -- once all %usage and support cost per owner is calculated remove the support cost from the list
      */
 
     $scope.getCostCenterList = function (year_month) {
@@ -58,13 +58,13 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
         $scope.loading = false;
         $scope.costCenterList = value.usage_data;
         $scope.totalCost = 0;
-        $scope.totalDirectorCost = 0;
+        $scope.totalOwnerCost = 0;
         $scope.totalPercent = 0;
         $scope.supportTotal = 0;
         $scope.totalToPay = 0;
         $.each($scope.costCenterList, function (k, v) {
           $scope.totalCost += v.cost;
-          v.directorName = v.name;
+          v.ownerName = v.name;
           if (v.id == 'support') {
             $scope.supportCost = v.cost;
           }
@@ -76,7 +76,7 @@ cuDirectorsControllers.controller('DirectorController', ['$scope', '$location' ,
           v.supportUsed = (v.percentUsed * $scope.supportCost) / 100;
           v.total = v.supportUsed + v.cost;
           if (v.id != 'support') {
-            $scope.totalDirectorCost += v.cost;
+            $scope.totalOwnerCost += v.cost;
             $scope.totalPercent += v.percentUsed;
             $scope.supportTotal += v.supportUsed;
             $scope.totalToPay += v.total;
