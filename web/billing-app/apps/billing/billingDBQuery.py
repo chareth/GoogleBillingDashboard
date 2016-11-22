@@ -52,7 +52,7 @@ def get_cost_centers(unique):
 '''
     Get the list of projects already in projects table
 
-    "SELECT project_id as project_id FROM reporting.projects where project_id = '12345';"
+    SELECT project_id as project_id FROM reporting.projects where project_id = '12345';
 '''
 
 
@@ -313,7 +313,6 @@ def get_billing_data_per_year_per_center(year, project_ids, output_type):
     WHERE EXTRACT(year FROM Billing.usage_date) = :param_1 AND
     Billing.project_id IN (:project_id_1, :project_id_2, :project_id_3)
     GROUP BY unix_timestamp(Billing.usage_date)
-
 '''
 
 

@@ -691,6 +691,22 @@ def get_costs_per_center_month(year, month, center, output_type):
                     each_month = {'name': name,
                                   'cost': float(cost)}
                     month_data.append(each_month)
+
+            # get monthly budgets for projects
+            project_info = get_cost_centers(False)
+            project_budget_info = dict()
+            for p in project_info:
+                if p.cost_center == center:
+                    project_budget_info[p.project_name] = float(p.alert_amount)
+            log.info("------------------------------------")
+            log.info(project_budget_info)
+            log.info("------------------------------------")
+
+            for i in month_data:
+                if i['name'] in project_budget_info:
+                    i['budget'] = project_budget_info[i['name']]
+                else:
+                    i['budget'] = 0
             center_json['usage_data'] = month_data
 
         elif output_type == 'week':
