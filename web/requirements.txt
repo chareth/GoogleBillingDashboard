@@ -11,3 +11,4 @@ Flask-SQLAlchemy==2.0.0
 apscheduler
 google-api-python-client
 pytz
+simplejson
