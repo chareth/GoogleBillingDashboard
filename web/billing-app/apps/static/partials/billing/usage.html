@@ -117,7 +117,7 @@
                                 </thead>
                                 <tr ng-repeat="x in costData">
                                     <td class="text-center">{{ x.name }}</td>
-                                    <td class="text-center" ng-class="{red: ( x.budget > x.cost)}">${{ x.cost  | number:2}}</td>
+                                    <td class="text-center" ng-class="{red: ( x.budget < x.cost && x.budget > 0)}">${{ x.cost  | number:2}}</td>
                                     <td class="text-center"
                                         ng-show="usage_display()">{{ x.usage |bytes }} {{ x.unit }}</td>
                                     <td class="text-center" ng-if="x.budget > 0" >${{x.budget | number:2}}</td>
